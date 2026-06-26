@@ -6,6 +6,7 @@ import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
+import { useAuthStore } from "@/store/auth-store"
 import {
   Sidebar,
   SidebarContent,
@@ -176,6 +177,9 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const storeUser = useAuthStore((state) => state.user)
+  const user = storeUser || { name: "Usuario", email: "" }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -186,7 +190,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
