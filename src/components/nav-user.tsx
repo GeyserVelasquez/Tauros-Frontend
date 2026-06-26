@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@/components/ui/avatar"
+} from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,27 +13,27 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { ChevronsUpDownIcon, SparklesIcon, BadgeCheckIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
-import { useLogout } from "@/features/auth"
+} from "@/components/ui/sidebar";
+import { ChevronsUpDownIcon, SparklesIcon, BadgeCheckIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react";
+import { useLogout } from "@/features/auth";
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar?: string
-  }
+    name: string;
+    email: string;
+    avatar?: string;
+  };
 }) {
-  const { isMobile } = useSidebar()
-  const { mutate: logoutMutate, isPending } = useLogout()
+  const { isMobile } = useSidebar();
+  const { mutate: logoutMutate, isPending } = useLogout();
 
   const initials = user.name
     ? user.name
@@ -42,7 +42,7 @@ export function NavUser({
         .join("")
         .toUpperCase()
         .slice(0, 2)
-    : "US"
+    : "US";
 
   return (
     <SidebarMenu>
@@ -57,15 +57,15 @@ export function NavUser({
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight font-montserrat">
+              <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user.email}</span>
+                <span className="truncate text-xs">{user.email}</span>
               </div>
               <ChevronsUpDownIcon className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-56 font-montserrat"
+            className="w-fit"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
@@ -78,7 +78,7 @@ export function NavUser({
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user.email}</span>
+                  <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -86,37 +86,35 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <SparklesIcon />
-                Mejorar Plan
+                Upgrade to Pro
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <BadgeCheckIcon />
-                Mi Cuenta
+                Account
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCardIcon />
-                Facturación
+                Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <BellIcon />
-                Notificaciones
+                Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={() => logoutMutate()} 
+            <DropdownMenuItem
+              onClick={() => logoutMutate()}
               disabled={isPending}
-              className="text-destructive focus:text-destructive"
             >
               <LogOutIcon />
-              {isPending ? "Cerrando sesión..." : "Cerrar Sesión"}
+              {isPending ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
-
