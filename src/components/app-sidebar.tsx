@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar"
 import {
   Volleyball, Settings2Icon, FrameIcon, PieChartIcon, MapIcon,
-  BriefcaseMedical, VenusAndMars, Beef, Tag
+  BriefcaseMedical, VenusAndMars, Beef, Tag, CreditCardIcon
 } from "lucide-react"
 
 // This is sample data.
@@ -149,6 +149,13 @@ const data = {
     },
   ],
   projects: [
+    {
+      name: "Pagos",
+      url: "/payments",
+      icon: (
+        <CreditCardIcon />
+      ),
+    },
     {
       name: "Design Engineering",
       url: "#",
