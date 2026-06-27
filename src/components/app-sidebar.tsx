@@ -46,7 +46,7 @@ const data = {
       items: [
         {
           title: "Ganado",
-          url: "#",
+          url: "/dashboard/livestock",
         },
         {
           title: "Lotes y Rebaños",
