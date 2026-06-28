@@ -37,7 +37,7 @@ export function LivestockTable() {
 
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<number | null>(null);
 
-  const columns: ColumnDef<Livestock>[] = [
+  const columns: ColumnDef<Livestock, any>[] = [
     {
       id: "seleccion",
       header: ({ table }) => (

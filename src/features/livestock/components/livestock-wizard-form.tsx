@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import {useState, useMemo} from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,7 +43,7 @@ export function LivestockWizardForm({
   isPending,
 }: LivestockWizardFormProps) {
   const router = useRouter();
-  const [step, setStep] = React.useState(1);
+  const [step, setStep] = useState<number>(1);
 
   // Carga de catálogos
   const { data: breeds = [], isLoading: isLoadingBreeds } = useBreeds();
@@ -59,7 +59,7 @@ export function LivestockWizardForm({
   const rawLivestockOptions = livestockData?.data || [];
 
   // Mapear opciones de ganado a { id, name }
-  const livestockOptions = React.useMemo(() => {
+  const livestockOptions = useMemo(() => {
     const list = rawLivestockOptions.map((animal) => ({
       id: animal.id,
       name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
@@ -102,12 +102,12 @@ export function LivestockWizardForm({
       birth_date: initialData?.birth_date || "",
       entry_date: initialData?.entry_date || "",
       general_comment: initialData?.general_comment || "",
-      tits: initialData?.tits !== undefined ? initialData.tits : 4,
+      tits: initialData?.tits !== undefined ? initialData.tits : 0,
       is_enabled: initialData?.is_enabled !== undefined ? initialData.is_enabled : true,
       is_alive: initialData?.is_alive !== undefined ? initialData.is_alive : true,
       animal_category: initialData?.animal_category || "",
-      entry_cause_id: initialData?.entry_cause_id || undefined,
-      state_id: initialData?.state_id || undefined,
+      entry_cause_id: initialData?.entry_cause_id || 0,
+      state_id: initialData?.state_id || 0,
       breed_id: initialData?.breed_id || null,
       color_id: initialData?.color_id || null,
       classification_id: initialData?.classification_id || null,
@@ -154,12 +154,12 @@ export function LivestockWizardForm({
   const categories = [
     { id: "bull", name: "Toro" },
     { id: "steer", name: "Novillo" },
-    { id: "male_yearling", name: "Torete" },
-    { id: "bull_calf", name: "Becerro (Macho)" },
+    { id: "male_yearling", name: "Maute" },
+    { id: "bull_calf", name: "Becerro" },
     { id: "cow", name: "Vaca" },
     { id: "heifer", name: "Novilla" },
-    { id: "female_yearling", name: "Vaquitona" },
-    { id: "heifer_calf", name: "Becerro (Hembra)" },
+    { id: "female_yearling", name: "Mauta" },
+    { id: "heifer_calf", name: "Becerra" },
   ];
 
   return (
@@ -627,7 +627,7 @@ export function LivestockWizardForm({
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             ) : (
-              <Button type="submit" disabled={isPending} className="bg-primary hover:bg-primary/95 text-primary-foreground">
+              <Button key="submit-button" type="submit" disabled={isPending} className="bg-primary hover:bg-primary/95 text-primary-foreground">
                 <Save className="mr-2 h-4 w-4" />
                 {isPending ? "Guardando..." : "Guardar Registro"}
               </Button>
