@@ -67,7 +67,7 @@ const data = {
       items: [
         {
           title: "Servicios",
-          url: "#",
+          url: "/dashboard/reproduction/services",
         },
         {
           title: "Palpaciones",
