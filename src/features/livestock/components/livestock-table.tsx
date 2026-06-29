@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
-import { Livestock } from "../types";
+import {ANIMAL_CATEGORY_LABELS, Livestock} from "../types";
 import { useLivestockList } from "../hooks/useLivestock";
 import { useDeleteLivestock } from "../hooks/useMutateLivestock";
 import { ArrowUpDown, Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react";
@@ -94,6 +94,9 @@ export function LivestockTable() {
       cell: ({ row }) => (
         <div className="font-semibold tracking-wider">{row.getValue("brand_number")}</div>
       ),
+      meta: {
+        label: "Marca / Arete",
+      },
     },
     {
       accessorKey: "name",
@@ -108,34 +111,37 @@ export function LivestockTable() {
         </Button>
       ),
       cell: ({ row }) => <div>{row.getValue("name") || "—"}</div>,
+      meta: {
+        label: "Nombre del Animal",
+      },
     },
     {
       accessorKey: "animal_category",
       header: "Categoría",
       cell: ({ row }) => {
         const category = row.getValue("animal_category") as string;
-        const labels: Record<string, string> = {
-          bull: "Toro",
-          steer: "Novillo",
-          male_yearling: "Torete",
-          bull_calf: "Becerro (M)",
-          cow: "Vaca",
-          heifer: "Novilla",
-          female_yearling: "Vaquitona",
-          heifer_calf: "Becerro (F)",
-        };
+        const labels: Record<string, string> = ANIMAL_CATEGORY_LABELS;
         return <span className="text-sm font-medium">{labels[category] || category}</span>;
+      },
+      meta: {
+        label: "Categoría",
       },
     },
     {
       id: "breed",
       header: "Raza",
       cell: ({ row }) => <div>{row.original.breed?.name || "—"}</div>,
+      meta: {
+        label: "Raza",
+      },
     },
     {
       id: "state",
       header: "Estado",
       cell: ({ row }) => <div>{row.original.state?.name || "—"}</div>,
+      meta: {
+        label: "Estado de Salud",
+      },
     },
     {
       accessorKey: "is_alive",
@@ -147,6 +153,9 @@ export function LivestockTable() {
             {isAlive ? "Vivo" : "Muerto"}
           </Badge>
         );
+      },
+      meta: {
+        label: "Estado Vital",
       },
     },
     {
@@ -160,9 +169,13 @@ export function LivestockTable() {
           </Badge>
         );
       },
+      meta: {
+        label: "Disponibilidad",
+      },
     },
     {
       id: "acciones",
+      enableHiding: false,
       cell: ({ row }) => {
         const animal = row.original;
 
