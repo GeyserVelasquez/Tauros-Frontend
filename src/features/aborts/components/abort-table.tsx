@@ -80,7 +80,7 @@ export function AbortTable() {
       },
     },
     {
-      id: "female",
+      id: "livestock.brand_number",
       header: "Hembra (Vaca/Novilla)",
       cell: ({ row }) => {
         const animal = row.original.livestock;
