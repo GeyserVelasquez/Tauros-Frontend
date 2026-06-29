@@ -62,7 +62,7 @@ interface DataTableProps<TData, TValue> {
   pageCount?: number
   isLoading?: boolean
   searchColumnKey?: string
-  filterPlaceholder?: string
+  searchPlaceholder?: string
   tableId: string
   defaultSort?: string
   defaultIncludes?: string[]
@@ -76,7 +76,7 @@ export function DataTable<TData, TValue>({
   pageCount,
   isLoading = false,
   searchColumnKey,
-  filterPlaceholder = "Filtrar...",
+  searchPlaceholder = "Filtrar...",
   tableId,
   defaultSort,
   defaultIncludes,
@@ -169,7 +169,7 @@ export function DataTable<TData, TValue>({
         <div className="flex flex-1 flex-wrap items-center gap-2">
           {searchColumnKey && (
             <Input
-              placeholder={filterPlaceholder}
+              placeholder={searchPlaceholder}
               value={(table.getColumn(searchColumnKey)?.getFilterValue() as string) ?? ""}
               onChange={(event) =>
                 table.getColumn(searchColumnKey)?.setFilterValue(event.target.value)

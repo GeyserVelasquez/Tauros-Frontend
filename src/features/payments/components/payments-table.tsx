@@ -185,7 +185,7 @@ export function PaymentsTable() {
       columns={columns}
       data={data || []}
       searchColumnKey="email"
-      filterPlaceholder="Buscar por email..."
+      searchPlaceholder="Buscar por email..."
       tableId="payments-table-preferences"
     />
   )

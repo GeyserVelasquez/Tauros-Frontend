@@ -238,7 +238,7 @@ export function LivestockTable() {
         pageCount={paginatedData?.meta?.last_page || 1}
         isLoading={isLoading}
         searchColumnKey="brand_number"
-        filterPlaceholder="Buscar por hierro"
+        searchPlaceholder="Buscar por hierro"
         tableId="livestock-table-preferences"
         defaultSort="-created_at"
         defaultIncludes={["breed", "color", "state", "entryCause"]}
