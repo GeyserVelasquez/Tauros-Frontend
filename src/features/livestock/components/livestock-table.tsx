@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
-import { Livestock } from "../types";
+import {ANIMAL_CATEGORY_LABELS, Livestock} from "../types";
 import { useLivestockList } from "../hooks/useLivestock";
 import { useDeleteLivestock } from "../hooks/useMutateLivestock";
 import { ArrowUpDown, Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react";
@@ -86,16 +86,7 @@ export function LivestockTable() {
       header: "Categoría",
       cell: ({ row }) => {
         const category = row.getValue("animal_category") as string;
-        const labels: Record<string, string> = {
-          bull: "Toro",
-          steer: "Novillo",
-          male_yearling: "Torete",
-          bull_calf: "Becerro (M)",
-          cow: "Vaca",
-          heifer: "Novilla",
-          female_yearling: "Vaquitona",
-          heifer_calf: "Becerro (F)",
-        };
+        const labels: ANIMAL_CATEGORY_LABELS;
         return <span className="text-sm font-medium">{labels[category] || category}</span>;
       },
     },

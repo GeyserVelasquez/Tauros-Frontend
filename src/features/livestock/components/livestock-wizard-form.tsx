@@ -19,7 +19,7 @@ import {
   FieldGroup,
 } from "@/components/ui/field";
 import { SearchableSelect } from "./searchable-select";
-import { livestockFormSchema, LivestockFormData, Livestock } from "../types";
+import { livestockFormSchema, LivestockFormData, ANIMAL_CATEGORY_OPTIONS, Livestock } from "../types";
 import {
   useBreeds,
   useColors,
@@ -87,7 +87,32 @@ export function LivestockWizardForm({
     return list;
   }, [rawLivestockOptions, initialData]);
 
-  const {
+  const defaultData = {
+    brand_number: initialData?.brand_number || "",
+    electronic_code: initialData?.electronic_code || "",
+    name: initialData?.name || "",
+    birth_date: initialData?.birth_date || "",
+    entry_date: initialData?.entry_date || "",
+    general_comment: initialData?.general_comment || "",
+    tits: initialData?.tits !== undefined ? initialData.tits : 0,
+    is_enabled: initialData?.is_enabled !== undefined ? initialData.is_enabled : true,
+    is_alive: initialData?.is_alive !== undefined ? initialData.is_alive : true,
+    animal_category: initialData?.animal_category || "",
+    entry_cause_id: initialData?.entry_cause_id || null,
+    state_id: initialData?.state_id || null,
+    breed_id: initialData?.breed_id || null,
+    color_id: initialData?.color_id || null,
+    classification_id: initialData?.classification_id || null,
+    owner_id: initialData?.owner_id || null,
+    technician_id: initialData?.technician_id || null,
+    father_id: initialData?.father_id || null,
+    mother_id: initialData?.mother_id || null,
+    adoptive_mother_id: initialData?.adoptive_mother_id || null,
+    receiving_mother_id: initialData?.receiving_mother_id || null,
+  }
+
+
+    const {
     register,
     handleSubmit,
     control,
@@ -95,29 +120,7 @@ export function LivestockWizardForm({
     formState: { errors },
   } = useForm<LivestockFormData>({
     resolver: zodResolver(livestockFormSchema),
-    defaultValues: {
-      brand_number: initialData?.brand_number || "",
-      electronic_code: initialData?.electronic_code || "",
-      name: initialData?.name || "",
-      birth_date: initialData?.birth_date || "",
-      entry_date: initialData?.entry_date || "",
-      general_comment: initialData?.general_comment || "",
-      tits: initialData?.tits !== undefined ? initialData.tits : 0,
-      is_enabled: initialData?.is_enabled !== undefined ? initialData.is_enabled : true,
-      is_alive: initialData?.is_alive !== undefined ? initialData.is_alive : true,
-      animal_category: initialData?.animal_category || "",
-      entry_cause_id: initialData?.entry_cause_id || 0,
-      state_id: initialData?.state_id || 0,
-      breed_id: initialData?.breed_id || null,
-      color_id: initialData?.color_id || null,
-      classification_id: initialData?.classification_id || null,
-      owner_id: initialData?.owner_id || null,
-      technician_id: initialData?.technician_id || null,
-      father_id: initialData?.father_id || null,
-      mother_id: initialData?.mother_id || null,
-      adoptive_mother_id: initialData?.adoptive_mother_id || null,
-      receiving_mother_id: initialData?.receiving_mother_id || null,
-    },
+    defaultValues: defaultData,
     mode: "onChange",
   });
 
@@ -150,17 +153,6 @@ export function LivestockWizardForm({
     isLoadingStates ||
     isLoadingOwners ||
     isLoadingTechnicians;
-
-  const categories = [
-    { id: "bull", name: "Toro" },
-    { id: "steer", name: "Novillo" },
-    { id: "male_yearling", name: "Maute" },
-    { id: "bull_calf", name: "Becerro" },
-    { id: "cow", name: "Vaca" },
-    { id: "heifer", name: "Novilla" },
-    { id: "female_yearling", name: "Mauta" },
-    { id: "heifer_calf", name: "Becerra" },
-  ];
 
   return (
     <div className="mx-auto max-w-2xl rounded-xl border bg-card p-6 shadow-sm font-montserrat">
@@ -265,7 +257,7 @@ export function LivestockWizardForm({
                         <SearchableSelect
                           value={field.value}
                           onChange={field.onChange}
-                          options={categories}
+                          options={ANIMAL_CATEGORY_OPTIONS}
                           placeholder="Seleccionar Categoría..."
                         />
                       )}
