@@ -71,7 +71,7 @@ const data = {
         },
         {
           title: "Palpaciones",
-          url: "#",
+          url: "/dashboard/reproduction/revisions",
         },
         {
           title: "Partos",
@@ -79,7 +79,7 @@ const data = {
         },
         {
           title: "Abortos",
-          url: "#",
+          url: "/dashboard/reproduction/aborts",
         },
         {
           title: "Genéticas",

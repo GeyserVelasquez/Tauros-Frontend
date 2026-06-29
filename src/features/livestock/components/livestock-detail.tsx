@@ -12,6 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLivestockById } from "../hooks/useLivestock";
 import { ServiceFormModal } from "@/features/services";
+import { RevisionFormModal } from "@/features/revisions";
+import { AbortFormModal } from "@/features/aborts";
 
 interface LivestockDetailProps {
   id: string | number;
@@ -20,6 +22,8 @@ interface LivestockDetailProps {
 export function LivestockDetail({ id }: LivestockDetailProps) {
   const router = useRouter();
   const [isServiceModalOpen, setIsServiceModalOpen] = React.useState(false);
+  const [isRevisionModalOpen, setIsRevisionModalOpen] = React.useState(false);
+  const [isAbortModalOpen, setIsAbortModalOpen] = React.useState(false);
   
   // Cargar animal con todas sus relaciones requeridas
   const { data: animal, isLoading, error } = useLivestockById(id, {
@@ -84,12 +88,22 @@ export function LivestockDetail({ id }: LivestockDetailProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {animal && ["cow", "heifer", "female_yearling", "heifer_calf"].includes(animal.animal_category) && (
-            <Button variant="outline" onClick={() => setIsServiceModalOpen(true)}>
-              <Calendar className="mr-2 h-4 w-4" />
-              Registrar Servicio
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => setIsServiceModalOpen(true)}>
+                <Calendar className="mr-2 h-4 w-4" />
+                Registrar Servicio
+              </Button>
+              <Button variant="outline" onClick={() => setIsRevisionModalOpen(true)}>
+                <Activity className="mr-2 h-4 w-4" />
+                Palpación
+              </Button>
+              <Button variant="outline" onClick={() => setIsAbortModalOpen(true)}>
+                <FileText className="mr-2 h-4 w-4" />
+                Aborto
+              </Button>
+            </>
           )}
           <Button asChild className="bg-primary hover:bg-primary/95 text-primary-foreground">
             <Link href={`/dashboard/livestock/${animal.id}/edit`}>
@@ -297,6 +311,18 @@ export function LivestockDetail({ id }: LivestockDetailProps) {
         open={isServiceModalOpen}
         onOpenChange={setIsServiceModalOpen}
         femaleId={animal.id}
+      />
+
+      <RevisionFormModal
+        open={isRevisionModalOpen}
+        onOpenChange={setIsRevisionModalOpen}
+        livestockId={animal.id}
+      />
+
+      <AbortFormModal
+        open={isAbortModalOpen}
+        onOpenChange={setIsAbortModalOpen}
+        livestockId={animal.id}
       />
     </div>
   );
