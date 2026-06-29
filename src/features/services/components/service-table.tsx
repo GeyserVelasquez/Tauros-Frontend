@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { Service, SemenBatch, EmbrionBatch } from "../types";
-import { useServicesList } from "../hooks/useServices";
+import { useServicesList, useServiceTypes, useTechniciansList } from "../hooks/useServices";
 import { useDeleteService } from "../hooks/useMutateServices";
 import { ServiceFormModal } from "./service-form-modal";
 import { Livestock } from "@/features/livestock";
@@ -36,6 +36,33 @@ export function ServiceTable() {
   // Consulta de servicios reproductivos con TanStack Query
   const { data: paginatedData, isLoading, error } = useServicesList(params);
   const { mutate: deleteService, isPending: isDeleting } = useDeleteService();
+
+  // Consultas para los catálogos de filtros
+  const { data: serviceTypes = [] } = useServiceTypes();
+  const { data: technicians = [] } = useTechniciansList();
+
+  // Definición de campos de filtrado para el DataTable
+  const filterFields = React.useMemo(() => [
+    {
+      id: "service_type_id",
+      placeholder: "Todos los servicios",
+      options: serviceTypes.map((t) => ({ id: t.id, name: t.name })),
+    },
+    {
+      id: "parentable_type",
+      placeholder: "Todos los servidores",
+      options: [
+        { id: "livestock", name: "Toros" },
+        { id: "semen_batch", name: "Inseminaciones" },
+        { id: "embrion_batch", name: "Embriones" },
+      ],
+    },
+    {
+      id: "technician_id",
+      placeholder: "Todos los técnicos",
+      options: technicians.map((t) => ({ id: t.id, name: t.name })),
+    },
+  ], [serviceTypes, technicians]);
 
   // Estados de control de modals
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<number | null>(null);
@@ -57,11 +84,11 @@ export function ServiceTable() {
       ),
       cell: ({ row }) => <div className="font-medium">{row.getValue("made_at")}</div>,
       meta: {
-        label: "Fecha de Servicio",
+        label: "Fecha",
       },
     },
     {
-      id: "female",
+      id: "female.brand_number",
       header: "Hembra",
       cell: ({ row }) => {
         const female = row.original.female;
@@ -80,7 +107,7 @@ export function ServiceTable() {
       header: "Tipo",
       cell: ({ row }) => <div>{row.original.service_type?.name || "—"}</div>,
       meta: {
-        label: "Tipo de Servicio",
+        label: "Tipo",
       },
     },
     {
@@ -96,7 +123,7 @@ export function ServiceTable() {
         return <span className="">{labels[type] || type}</span>;
       },
       meta: {
-        label: "Tipo de Parental",
+        label: "Origen",
       },
     },
     {
@@ -109,18 +136,18 @@ export function ServiceTable() {
 
         if (type === "livestock") {
           const bull = parentable as Livestock;
-          return <span className="font-semibold">{bull.brand_number} {bull.name ? `(${bull.name})` : ""}</span>;
+          return <span className="font-semibold">{bull.brand_number} {bull.name ? `- ${bull.name}` : ""}</span>;
         } else if (type === "semen_batch") {
           const semen = parentable as SemenBatch;
-          return <span>{semen.code} ({semen.name})</span>;
+          return <span className="font-semibold">{semen.code} {semen.name ? `- ${semen.name}` : ""}</span>;
         } else if (type === "embrion_batch") {
           const embryo = parentable as EmbrionBatch;
-          return <span>{embryo.code} ({embryo.name})</span>;
+          return <span className="font-semibold">{embryo.code} {embryo.name ? `- ${embryo.name}` : ""}</span>;
         }
         return <span className="text-muted-foreground">—</span>;
       },
       meta: {
-        label: "Parental",
+        label: "Servidor",
       },
     },
     {
@@ -191,9 +218,12 @@ export function ServiceTable() {
         data={servicesData}
         pageCount={paginatedData?.meta?.last_page || 1}
         isLoading={isLoading}
+        searchColumnKey="female.brand_number"
+        searchPlaceholder="Buscar por madre..."
         tableId="services-table-preferences"
         defaultSort="-created_at"
         defaultIncludes={["female", "technician", "serviceType", "parentable"]}
+        filterFields={filterFields}
         onStateChange={setParams}
       />
 
