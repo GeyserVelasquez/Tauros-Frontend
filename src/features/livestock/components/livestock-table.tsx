@@ -6,8 +6,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/data-table";
-import {ANIMAL_CATEGORY_LABELS, Livestock} from "../types";
+import { DataTable, SpatieQueryParams } from "@/components/data-table";
+import { Livestock } from "../types";
 import { useLivestockList } from "../hooks/useLivestock";
 import { useDeleteLivestock } from "../hooks/useMutateLivestock";
 import { ArrowUpDown, Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react";
@@ -27,12 +27,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useBreeds,
+  useColors,
+  useEntryCauses,
+  useStates,
+} from "../hooks/useDropdownOptions";
 
 export function LivestockTable() {
-  const { data: paginatedData, isLoading, error } = useLivestockList({
-    include: "breed,color,state,entryCause",
-  });
+  const [params, setParams] = React.useState<SpatieQueryParams>({});
+
+  // Carga de opciones de catálogos para los selectores de filtros
+  const { data: breeds = [] } = useBreeds();
+  const { data: colors = [] } = useColors();
+  const { data: states = [] } = useStates();
+  const { data: entryCauses = [] } = useEntryCauses();
+
+  const filterFields = React.useMemo(() => [
+    { id: "breed_id", placeholder: "Todas las razas", options: breeds },
+    { id: "color_id", placeholder: "Todos los colores", options: colors },
+    { id: "state_id", placeholder: "Todos los estados", options: states },
+    { id: "entry_cause_id", placeholder: "Todas las causas", options: entryCauses },
+  ], [breeds, colors, states, entryCauses]);
+  
+  // Consulta de ganado al backend enviando los parámetros mapeados por DataTable
+  const { data: paginatedData, isLoading, error } = useLivestockList(params);
   const { mutate: deleteAnimal, isPending: isDeleting } = useDeleteLivestock();
 
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<number | null>(null);
@@ -78,7 +97,16 @@ export function LivestockTable() {
     },
     {
       accessorKey: "name",
-      header: "Nombre",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-3"
+        >
+          Nombre
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
       cell: ({ row }) => <div>{row.getValue("name") || "—"}</div>,
     },
     {
@@ -86,7 +114,16 @@ export function LivestockTable() {
       header: "Categoría",
       cell: ({ row }) => {
         const category = row.getValue("animal_category") as string;
-        const labels: ANIMAL_CATEGORY_LABELS;
+        const labels: Record<string, string> = {
+          bull: "Toro",
+          steer: "Novillo",
+          male_yearling: "Torete",
+          bull_calf: "Becerro (M)",
+          cow: "Vaca",
+          heifer: "Novilla",
+          female_yearling: "Vaquitona",
+          heifer_calf: "Becerro (F)",
+        };
         return <span className="text-sm font-medium">{labels[category] || category}</span>;
       },
     },
@@ -170,15 +207,6 @@ export function LivestockTable() {
     },
   ];
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-10 w-[250px]" />
-        <Skeleton className="h-[300px] w-full rounded-md" />
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="p-8 text-center font-montserrat text-red-500">
@@ -194,9 +222,15 @@ export function LivestockTable() {
       <DataTable
         columns={columns}
         data={livestockData}
-        filterColumnKey="brand_number"
-        filterPlaceholder="Buscar por arete / marca..."
+        pageCount={paginatedData?.meta?.last_page || 1}
+        isLoading={isLoading}
+        searchColumnKey="brand_number"
+        filterPlaceholder="Buscar por hierro"
         tableId="livestock-table-preferences"
+        defaultSort="-created_at"
+        defaultIncludes={["breed", "color", "state", "entryCause"]}
+        filterFields={filterFields}
+        onStateChange={setParams}
       />
 
       {/* Modal de Confirmación de Eliminación */}
