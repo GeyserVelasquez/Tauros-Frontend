@@ -184,7 +184,7 @@ export function PaymentsTable() {
     <DataTable
       columns={columns}
       data={data || []}
-      filterColumnKey="email"
+      searchColumnKey="email"
       filterPlaceholder="Buscar por email..."
       tableId="payments-table-preferences"
     />
