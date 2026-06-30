@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { ChevronsUpDownIcon, SparklesIcon, BadgeCheckIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react";
 import { useLogout } from "@/features/auth";
+import {ModeToggle} from "@/components/mode-toggle";
 
 export function NavUser({
   user,
@@ -85,8 +86,7 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <SparklesIcon />
-                Upgrade to Pro
+                <ModeToggle/>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

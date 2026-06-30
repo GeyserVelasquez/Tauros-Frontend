@@ -16,6 +16,7 @@ export function useCreateLivestock() {
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || "Error al registrar el animal. Inténtalo de nuevo.";
+      console.error(message);
       toast.error(message);
     },
   });

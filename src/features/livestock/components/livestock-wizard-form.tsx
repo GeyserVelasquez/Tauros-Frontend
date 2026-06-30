@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import {useState, useMemo} from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +19,7 @@ import {
   FieldGroup,
 } from "@/components/ui/field";
 import { SearchableSelect } from "./searchable-select";
-import { livestockFormSchema, LivestockFormData, Livestock } from "../types";
+import { livestockFormSchema, LivestockFormData, ANIMAL_CATEGORY_OPTIONS, Livestock } from "../types";
 import {
   useBreeds,
   useColors,
@@ -43,7 +43,7 @@ export function LivestockWizardForm({
   isPending,
 }: LivestockWizardFormProps) {
   const router = useRouter();
-  const [step, setStep] = React.useState(1);
+  const [step, setStep] = useState<number>(1);
 
   // Carga de catálogos
   const { data: breeds = [], isLoading: isLoadingBreeds } = useBreeds();
@@ -59,7 +59,7 @@ export function LivestockWizardForm({
   const rawLivestockOptions = livestockData?.data || [];
 
   // Mapear opciones de ganado a { id, name }
-  const livestockOptions = React.useMemo(() => {
+  const livestockOptions = useMemo(() => {
     const list = rawLivestockOptions.map((animal) => ({
       id: animal.id,
       name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
@@ -87,7 +87,32 @@ export function LivestockWizardForm({
     return list;
   }, [rawLivestockOptions, initialData]);
 
-  const {
+  const defaultData = {
+    brand_number: initialData?.brand_number || "",
+    electronic_code: initialData?.electronic_code || "",
+    name: initialData?.name || "",
+    birth_date: initialData?.birth_date || "",
+    entry_date: initialData?.entry_date || "",
+    general_comment: initialData?.general_comment || "",
+    tits: initialData?.tits !== undefined ? initialData.tits : 0,
+    is_enabled: initialData?.is_enabled !== undefined ? initialData.is_enabled : true,
+    is_alive: initialData?.is_alive !== undefined ? initialData.is_alive : true,
+    animal_category: initialData?.animal_category || "",
+    entry_cause_id: initialData?.entry_cause_id || 0,
+    state_id: initialData?.state_id || 0,
+    breed_id: initialData?.breed_id || null,
+    color_id: initialData?.color_id || null,
+    classification_id: initialData?.classification_id || null,
+    owner_id: initialData?.owner_id || null,
+    technician_id: initialData?.technician_id || null,
+    father_id: initialData?.father_id || null,
+    mother_id: initialData?.mother_id || null,
+    adoptive_mother_id: initialData?.adoptive_mother_id || null,
+    receiving_mother_id: initialData?.receiving_mother_id || null,
+  }
+
+
+    const {
     register,
     handleSubmit,
     control,
@@ -95,29 +120,7 @@ export function LivestockWizardForm({
     formState: { errors },
   } = useForm<LivestockFormData>({
     resolver: zodResolver(livestockFormSchema),
-    defaultValues: {
-      brand_number: initialData?.brand_number || "",
-      electronic_code: initialData?.electronic_code || "",
-      name: initialData?.name || "",
-      birth_date: initialData?.birth_date || "",
-      entry_date: initialData?.entry_date || "",
-      general_comment: initialData?.general_comment || "",
-      tits: initialData?.tits !== undefined ? initialData.tits : 4,
-      is_enabled: initialData?.is_enabled !== undefined ? initialData.is_enabled : true,
-      is_alive: initialData?.is_alive !== undefined ? initialData.is_alive : true,
-      animal_category: initialData?.animal_category || "",
-      entry_cause_id: initialData?.entry_cause_id || undefined,
-      state_id: initialData?.state_id || undefined,
-      breed_id: initialData?.breed_id || null,
-      color_id: initialData?.color_id || null,
-      classification_id: initialData?.classification_id || null,
-      owner_id: initialData?.owner_id || null,
-      technician_id: initialData?.technician_id || null,
-      father_id: initialData?.father_id || null,
-      mother_id: initialData?.mother_id || null,
-      adoptive_mother_id: initialData?.adoptive_mother_id || null,
-      receiving_mother_id: initialData?.receiving_mother_id || null,
-    },
+    defaultValues: defaultData,
     mode: "onChange",
   });
 
@@ -150,17 +153,6 @@ export function LivestockWizardForm({
     isLoadingStates ||
     isLoadingOwners ||
     isLoadingTechnicians;
-
-  const categories = [
-    { id: "bull", name: "Toro" },
-    { id: "steer", name: "Novillo" },
-    { id: "male_yearling", name: "Torete" },
-    { id: "bull_calf", name: "Becerro (Macho)" },
-    { id: "cow", name: "Vaca" },
-    { id: "heifer", name: "Novilla" },
-    { id: "female_yearling", name: "Vaquitona" },
-    { id: "heifer_calf", name: "Becerro (Hembra)" },
-  ];
 
   return (
     <div className="mx-auto max-w-2xl rounded-xl border bg-card p-6 shadow-sm font-montserrat">
@@ -265,7 +257,7 @@ export function LivestockWizardForm({
                         <SearchableSelect
                           value={field.value}
                           onChange={field.onChange}
-                          options={categories}
+                          options={ANIMAL_CATEGORY_OPTIONS}
                           placeholder="Seleccionar Categoría..."
                         />
                       )}
@@ -627,7 +619,7 @@ export function LivestockWizardForm({
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             ) : (
-              <Button type="submit" disabled={isPending} className="bg-primary hover:bg-primary/95 text-primary-foreground">
+              <Button key="submit-button" type="submit" disabled={isPending} className="bg-primary hover:bg-primary/95 text-primary-foreground">
                 <Save className="mr-2 h-4 w-4" />
                 {isPending ? "Guardando..." : "Guardar Registro"}
               </Button>

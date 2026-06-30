@@ -11,7 +11,6 @@ import {
   type ColumnDef,
   type ColumnFiltersState,
   type SortingState,
-  type VisibilityState,
 } from "@tanstack/react-table"
 
 import {
@@ -38,27 +37,61 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useTableStore } from "@/store/table-store"
+import { useDebounce } from "@/hooks/useDebounce"
+import { mapTableStateToSpatieParams } from "@/lib/spatie-query-mapper"
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+
+export interface SpatieQueryParams {
+  page?: number;
+  per_page?: number;
+  sort?: string;
+  include?: string;
+  [key: string]: any;
+}
+
+export interface DataTableFilterField {
+  id: string;
+  placeholder: string;
+  options: { id: string | number; name: string }[];
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  filterColumnKey?: string
-  filterPlaceholder?: string
+  pageCount?: number
+  isLoading?: boolean
+  searchColumnKey?: string
+  searchPlaceholder?: string
   tableId: string
+  defaultSort?: string
+  defaultIncludes?: string[]
+  filterFields?: DataTableFilterField[]
+  onStateChange?: (params: SpatieQueryParams) => void
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  filterColumnKey,
-  filterPlaceholder = "Filtrar...",
+  pageCount,
+  isLoading = false,
+  searchColumnKey,
+  searchPlaceholder = "Filtrar...",
   tableId,
+  defaultSort,
+  defaultIncludes,
+  filterFields,
+  onStateChange,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  // Determinar si la tabla opera del lado del servidor
+  const isServerSide = !!onStateChange
+
+  // 1. Estados internos de TanStack React Table
+  const [sorting, setSorting] = React.useState<SortingState>(
+    defaultSort ? [{ id: defaultSort.replace("-", ""), desc: defaultSort.startsWith("-") }] : []
+  )
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
-  // Zustand states for persistence
   const { columnVisibility, paginationLimit, setColumnVisibility, setPaginationLimit } =
     useTableStore()
 
@@ -70,6 +103,25 @@ export function DataTable<TData, TValue>({
     pageSize,
   })
 
+  // 2. Debounce únicamente para filtros (evita peticiones en ráfaga al escribir)
+  const debouncedFilters = useDebounce(columnFilters, 400)
+
+  // Resetear al primer index de página si los filtros cambian (solo en modo servidor)
+  React.useEffect(() => {
+    if (isServerSide) {
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+    }
+  }, [debouncedFilters, isServerSide])
+
+  // 3. Efecto para notificar cambios de estado al servidor
+  React.useEffect(() => {
+    if (onStateChange) {
+      const params = mapTableStateToSpatieParams(pagination, sorting, debouncedFilters, defaultIncludes)
+      onStateChange(params)
+    }
+  }, [pagination, sorting, debouncedFilters, defaultIncludes, onStateChange])
+
+  // Sincronizar pageSize si cambia en la base de persistencia de Zustand
   React.useEffect(() => {
     setPagination((prev) => ({ ...prev, pageSize }))
   }, [pageSize])
@@ -77,6 +129,7 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    pageCount: pageCount ?? (isServerSide ? 1 : undefined),
     state: {
       sorting,
       columnFilters,
@@ -98,28 +151,70 @@ export function DataTable<TData, TValue>({
         setPaginationLimit(tableId, nextPagination.pageSize)
       }
     },
+    manualPagination: isServerSide,
+    manualSorting: isServerSide,
+    manualFiltering: isServerSide,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: isServerSide ? undefined : getFilteredRowModel(),
+    getPaginationRowModel: isServerSide ? undefined : getPaginationRowModel(),
+    getSortedRowModel: isServerSide ? undefined : getSortedRowModel(),
   })
+
+  const resolvedPageCount = pageCount ?? (isServerSide ? 1 : table.getPageCount())
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        {filterColumnKey && (
-          <Input
-            placeholder={filterPlaceholder}
-            value={(table.getColumn(filterColumnKey)?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn(filterColumnKey)?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-        )}
+      {/* Barra de Filtros y Selección de Columnas */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 flex-wrap items-center gap-2">
+          {searchColumnKey && (
+            <Input
+              placeholder={searchPlaceholder}
+              value={(table.getColumn(searchColumnKey)?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn(searchColumnKey)?.setFilterValue(event.target.value)
+              }
+              className="max-w-xs"
+            />
+          )}
+
+          {filterFields?.map((field) => {
+            const currentValue =
+              (columnFilters.find((f) => f.id === field.id)?.value as string) ?? "all"
+
+            return (
+              <Select
+                key={field.id}
+                value={currentValue}
+                onValueChange={(value) => {
+                  setColumnFilters((prev) => {
+                    const rest = prev.filter((f) => f.id !== field.id)
+                    if (value && value !== "all") {
+                      return [...rest, { id: field.id, value }]
+                    }
+                    return rest
+                  })
+                }}
+              >
+                <SelectTrigger className="w-[180px] font-montserrat text-sm">
+                  <SelectValue placeholder={field.placeholder} />
+                </SelectTrigger>
+                <SelectContent side="top" className="font-montserrat">
+                  <SelectItem value="all">{field.placeholder}</SelectItem>
+                  {field.options.map((opt) => (
+                    <SelectItem key={opt.id} value={String(opt.id)}>
+                      {opt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )
+          })}
+        </div>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="ml-auto flex items-center gap-1.5">
+            <Button variant="outline" size="sm" className="flex items-center gap-1.5 font-montserrat">
               Columnas <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -127,49 +222,51 @@ export function DataTable<TData, TValue>({
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {(column.columnDef.meta as any)?.label || column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
+      {/* Contenedor de la Tabla */}
       <div className="rounded-md border bg-background">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              // Mostrar Skeletons en cada celda para un feedback de carga táctil y moderno
+              Array.from({ length: pageSize }).map((_, rowIndex) => (
+                <TableRow key={`skeleton-row-${rowIndex}`}>
+                  {columns.map((_, colIndex) => (
+                    <TableCell key={`skeleton-col-${colIndex}`} className="py-3">
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -188,7 +285,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      {/* Pagination Controls */}
+      {/* Controles de Paginación */}
       <div className="flex items-center justify-between px-2">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} de{" "}
@@ -216,15 +313,15 @@ export function DataTable<TData, TValue>({
             </Select>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Página {table.getState().pagination.pageIndex + 1} de{" "}
-            {table.getPageCount() || 1}
+            Página {pagination.pageIndex + 1} de{" "}
+            {resolvedPageCount || 1}
           </div>
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
               className="hidden h-8 w-8 p-0 lg:flex"
               onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
+              disabled={pagination.pageIndex === 0 || isLoading}
             >
               <span className="sr-only">Ir a la primera página</span>
               <ChevronsLeft className="h-4 w-4" />
@@ -233,7 +330,7 @@ export function DataTable<TData, TValue>({
               variant="outline"
               className="h-8 w-8 p-0"
               onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              disabled={pagination.pageIndex === 0 || isLoading}
             >
               <span className="sr-only">Ir a la página anterior</span>
               <ChevronLeft className="h-4 w-4" />
@@ -242,7 +339,7 @@ export function DataTable<TData, TValue>({
               variant="outline"
               className="h-8 w-8 p-0"
               onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              disabled={pagination.pageIndex >= resolvedPageCount - 1 || isLoading}
             >
               <span className="sr-only">Ir a la página siguiente</span>
               <ChevronRight className="h-4 w-4" />
@@ -250,8 +347,8 @@ export function DataTable<TData, TValue>({
             <Button
               variant="outline"
               className="hidden h-8 w-8 p-0 lg:flex"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
+              onClick={() => table.setPageIndex(resolvedPageCount - 1)}
+              disabled={pagination.pageIndex >= resolvedPageCount - 1 || isLoading}
             >
               <span className="sr-only">Ir a la última página</span>
               <ChevronsRight className="h-4 w-4" />

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar"
 import {
   Volleyball, Settings2Icon, FrameIcon, PieChartIcon, MapIcon,
-  BriefcaseMedical, VenusAndMars, Beef, Tag, CreditCardIcon
+  BriefcaseMedical, VenusAndMars, Beef, Tag, CreditCardIcon, Sparkles, LocateFixed
 } from "lucide-react"
 
 // This is sample data.
@@ -42,7 +42,6 @@ const data = {
       icon: (
           <Tag />
       ),
-      isActive: true,
       items: [
         {
           title: "Ganado",
@@ -67,11 +66,11 @@ const data = {
       items: [
         {
           title: "Servicios",
-          url: "#",
+          url: "/dashboard/reproduction/services",
         },
         {
           title: "Palpaciones",
-          url: "#",
+          url: "/dashboard/reproduction/revisions",
         },
         {
           title: "Partos",
@@ -79,7 +78,7 @@ const data = {
         },
         {
           title: "Abortos",
-          url: "#",
+          url: "/dashboard/reproduction/aborts",
         },
         {
           title: "Genéticas",
@@ -150,34 +149,17 @@ const data = {
   ],
   projects: [
     {
-      name: "Pagos",
-      url: "/payments",
+      name: "IA",
+      url: "#",
       icon: (
-        <CreditCardIcon />
+        <Sparkles />
       ),
     },
     {
-      name: "Design Engineering",
+      name: "GPS",
       url: "#",
       icon: (
-        <FrameIcon
-        />
-      ),
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: (
-        <PieChartIcon
-        />
-      ),
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: (
-        <MapIcon
-        />
+        <LocateFixed/>
       ),
     },
   ],

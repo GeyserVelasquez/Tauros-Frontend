@@ -10,6 +10,24 @@ export type AnimalCategory =
   | "female_yearling"
   | "heifer_calf";
 
+export const ANIMAL_CATEGORY_LABELS: Record<AnimalCategory, string> = {
+  bull: "Toro",
+  steer: "Novillo",
+  male_yearling: "Maute",
+  bull_calf: "Becerro",
+  cow: "Vaca",
+  heifer: "Novilla",
+  female_yearling: "Mauta",
+  heifer_calf: "Becerra",
+};
+
+export const ANIMAL_CATEGORY_OPTIONS = Object.entries(ANIMAL_CATEGORY_LABELS).map(
+    ([id, name]) => ({
+      id: id as AnimalCategory,
+      name,
+    })
+);
+
 export const livestockFormSchema = z.object({
   brand_number: z.string().min(1, "El número de marca/arete es obligatorio"),
   electronic_code: z.string().nullable().optional(),
@@ -74,3 +92,4 @@ export interface Livestock {
   receiving_mother?: Livestock;
   batch?: { id: number; name: string };
 }
+
