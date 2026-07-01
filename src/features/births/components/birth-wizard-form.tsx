@@ -21,7 +21,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { SearchableSelect } from "@/features/livestock/components/searchable-select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useBirthWizardForm } from "../hooks/useBirthWizardForm";
 import { Birth, BirthWizardData, BirthFlatFormData } from "../types";
 

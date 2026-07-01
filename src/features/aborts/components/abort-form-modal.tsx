@@ -18,7 +18,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SearchableSelect } from "@/features/livestock/components/searchable-select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useLivestockList } from "@/features/livestock/hooks/useLivestock";
 
 import {

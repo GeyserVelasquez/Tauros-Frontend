@@ -52,7 +52,7 @@ export function SearchableSelect({
           role="combobox"
           aria-expanded={open}
           aria-invalid={invalid}
-          className="w-full justify-between font-normal text-left"
+          className="w-full justify-between font-normal text-left font-montserrat"
           disabled={disabled}
         >
           <span className="truncate">
@@ -61,7 +61,7 @@ export function SearchableSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 PopoverContent" align="start">
+      <PopoverContent className="w-full p-0 PopoverContent font-montserrat" align="start">
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
