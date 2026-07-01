@@ -10,15 +10,8 @@ import { DataTable, SpatieQueryParams } from "@/components/data-table";
 import { ANIMAL_CATEGORY_LABELS, AnimalCategory, Livestock } from "../types";
 import { useLivestockList } from "../hooks/useLivestock";
 import { useDeleteLivestock } from "../hooks/useMutateLivestock";
-import { ArrowUpDown, Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ArrowUpDown, Edit, Eye, Trash2 } from "lucide-react";
+import { TableActions } from "@/components/ui/table-actions";
 import { LivestockDeleteDialog } from "./livestock-delete-dialog";
 import { useBreeds } from "@/features/breeds";
 import { useColors } from "@/features/colors";
@@ -170,41 +163,27 @@ export function LivestockTable() {
         const animal = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menú</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem asChild>
-                <Link href={`/dashboard/livestock/${animal.id}`}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  Ver Detalles
-                </Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem asChild>
-                <Link href={`/dashboard/livestock/${animal.id}/edit`}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Editar Registro
-                </Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setConfirmDeleteId(animal.id)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar Animal
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <TableActions
+            actions={[
+              {
+                label: "Ver Detalles",
+                icon: Eye,
+                href: `/dashboard/livestock/${animal.id}`,
+              },
+              {
+                label: "Editar Registro",
+                icon: Edit,
+                href: `/dashboard/livestock/${animal.id}/edit`,
+              },
+              {
+                label: "Eliminar Animal",
+                icon: Trash2,
+                variant: "destructive",
+                showSeparatorBefore: true,
+                onClick: () => setConfirmDeleteId(animal.id),
+              },
+            ]}
+          />
         );
       },
     },
