@@ -98,4 +98,8 @@ src/
 - **Auth Handling (Sanctum SPA):** Coordinate with the backend to use HttpOnly cookies. Never store sensitive tokens in LocalStorage or SessionStorage.
 - **Type Safety:** Use strict TypeScript. Define Zod schemas and infer TypeScript interfaces from them. Do not use `any`. Interfaces must strictly match the Laravel API JSON responses.
 
+=== info ===
+# 6. Info
+- **Folders Destination:** Every file .md file that you create must be in one of these folders [/plans, /docs, /trash] , depending on the context and content of the file
+
 <!-- END:nextjs-agent-rules -->

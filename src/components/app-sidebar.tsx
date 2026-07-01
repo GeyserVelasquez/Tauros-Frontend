@@ -74,7 +74,7 @@ const data = {
         },
         {
           title: "Partos",
-          url: "#",
+          url: "/dashboard/reproduction/births",
         },
         {
           title: "Abortos",
