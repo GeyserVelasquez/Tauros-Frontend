@@ -1,7 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useMemo, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { birthWizardSchema, BirthWizardData, Birth } from "../types";
+import { birthFlatSchema, BirthFlatFormData, Birth } from "../types";
 import { useEntryCauses, useStates, useColors, useBreeds, useTechnicians } from "@/features/livestock/hooks/useDropdownOptions";
 import { useBirthTypes, useNewbornTypes } from "./useBirths";
 import { useLivestockList } from "@/features/livestock/hooks/useLivestock";
@@ -11,7 +11,7 @@ interface UseBirthWizardFormProps {
 }
 
 export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}) {
-  const [step, setStep] = useState<number>(1);
+  const isEdit = !!initialData;
 
   // Load catalogs from standard hooks
   const { data: birthTypes = [], isLoading: isLoadingBirthTypes } = useBirthTypes();
@@ -55,23 +55,23 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
         name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
       }));
 
-    if (initialData?.newborns) {
-      initialData.newborns.forEach((nb) => {
-        const father = nb.livestock?.father;
-        if (father && !list.some((item) => item.id === father.id)) {
-          list.push({
-            id: father.id,
-            name: `${father.brand_number} ${father.name ? `- ${father.name}` : ""}`,
-          });
-        }
-      });
+    if (initialData?.newborns?.[0]?.livestock?.father) {
+      const father = initialData.newborns[0].livestock.father;
+      if (!list.some((item) => item.id === father.id)) {
+        list.push({
+          id: father.id,
+          name: `${father.brand_number} ${father.name ? `- ${father.name}` : ""}`,
+        });
+      }
     }
 
     return list;
   }, [livestockList, initialData]);
 
-  // Compute default values
-  const defaultValues: BirthWizardData = useMemo(() => {
+  // Compute flat default values
+  const defaultValues: BirthFlatFormData = useMemo(() => {
+    const firstNewborn = initialData?.newborns?.[0];
+
     if (initialData) {
       return {
         mother_id: initialData.mother_id,
@@ -79,20 +79,18 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
         postbirth_revision_date: initialData.postbirth_revision_date ? initialData.postbirth_revision_date.split("T")[0] : "",
         birth_type_id: initialData.birth_type_id,
         technician_id: initialData.technician_id || null,
-        newborns_count: initialData.newborns?.length || 1,
-        newborns: initialData.newborns?.map((nb) => ({
-          brand_number: nb.livestock?.brand_number || "",
-          animal_category: (nb.livestock?.animal_category as any) || undefined,
-          entry_cause_id: nb.livestock?.entry_cause_id || undefined as any,
-          state_id: nb.livestock?.state_id || undefined as any,
-          newborn_type_id: nb.newborn_type_id || undefined as any,
-          color_id: nb.livestock?.color_id || null,
-          breed_id: nb.livestock?.breed_id || null,
-          father_id: nb.livestock?.father_id || null,
-          electronic_code: nb.livestock?.electronic_code || "",
-          name: nb.livestock?.name || "",
-          general_comment: nb.livestock?.general_comment || "",
-        })) || [],
+        // Newborn fields flattened
+        brand_number: firstNewborn?.livestock?.brand_number || "",
+        animal_category: (firstNewborn?.livestock?.animal_category as any) || undefined,
+        entry_cause_id: firstNewborn?.livestock?.entry_cause_id || undefined as any,
+        state_id: firstNewborn?.livestock?.state_id || undefined as any,
+        newborn_type_id: firstNewborn?.newborn_type_id || undefined as any,
+        color_id: firstNewborn?.livestock?.color_id || null,
+        breed_id: firstNewborn?.livestock?.breed_id || null,
+        father_id: firstNewborn?.livestock?.father_id || null,
+        electronic_code: firstNewborn?.livestock?.electronic_code || "",
+        name: firstNewborn?.livestock?.name || "",
+        general_comment: firstNewborn?.livestock?.general_comment || "",
       };
     }
 
@@ -102,83 +100,51 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
       postbirth_revision_date: new Date().toISOString().split("T")[0],
       birth_type_id: undefined as any,
       technician_id: null,
-      newborns_count: 1,
-      newborns: [{
-        brand_number: "",
-        animal_category: undefined as any, // Unselected by default
-        entry_cause_id: undefined as any,
-        state_id: undefined as any,
-        newborn_type_id: undefined as any,
-        color_id: null,
-        breed_id: null,
-        father_id: null,
-        electronic_code: "",
-        name: "",
-        general_comment: "",
-      }],
+      // Newborn fields empty
+      brand_number: "",
+      animal_category: undefined as any,
+      entry_cause_id: undefined as any,
+      state_id: undefined as any,
+      newborn_type_id: undefined as any,
+      color_id: null,
+      breed_id: null,
+      father_id: null,
+      electronic_code: "",
+      name: "",
+      general_comment: "",
     };
   }, [initialData]);
 
-  const methods = useForm<BirthWizardData>({
-    resolver: zodResolver(birthWizardSchema),
+  const methods = useForm<BirthFlatFormData>({
+    resolver: zodResolver(birthFlatSchema) as any,
     defaultValues,
     mode: "onChange",
   });
 
-  const { control, trigger, watch, reset } = methods;
-  const { fields, append, remove } = useFieldArray({ control, name: "newborns" });
-  const watchNewbornsCount = watch("newborns_count") || 1;
+  const { reset, watch } = methods;
 
   // Reset form when initialData changes
   useEffect(() => {
     reset(defaultValues);
-    setStep(1);
   }, [initialData, defaultValues, reset]);
 
-  const syncNewbornsArray = (count: number) => {
-    const currentLength = fields.length;
-    const birthCauseId = entryCauses.find((c) => c.name.toLowerCase().includes("nacimiento"))?.id || 1;
-    const activeStateId = states.find((s) => s.name.toLowerCase().includes("activo"))?.id || 1;
-    const normalTypeId = newbornTypes.find((t) => t.name.toLowerCase().includes("normal"))?.id || 1;
+  // Load default catalog options into creation mode as soon as they finish loading
+  useEffect(() => {
+    if (!isEdit && entryCauses.length && states.length && newbornTypes.length) {
+      if (!watch("entry_cause_id")) {
+        const birthCauseId = entryCauses.find((c) => c.name.toLowerCase().includes("nacimiento"))?.id || 1;
+        const activeStateId = states.find((s) => s.name.toLowerCase().includes("activo"))?.id || 1;
+        const normalTypeId = newbornTypes.find((t) => t.name.toLowerCase().includes("normal"))?.id || 1;
 
-    if (count > currentLength) {
-      for (let i = currentLength; i < count; i++) {
-        append({
-          brand_number: "",
-          animal_category: undefined as any, // Not selected by default
+        reset({
+          ...watch(),
           entry_cause_id: birthCauseId,
           state_id: activeStateId,
           newborn_type_id: normalTypeId,
-          color_id: null,
-          breed_id: null,
-          father_id: null,
-          electronic_code: "",
-          name: "",
-          general_comment: "",
         });
       }
-    } else if (count < currentLength) {
-      for (let i = currentLength - 1; i >= count; i--) {
-        remove(i);
-      }
     }
-  };
-
-  const handleNext = async () => {
-    const isStep1Valid = await trigger([
-      "mother_id",
-      "birth_date",
-      "postbirth_revision_date",
-      "birth_type_id",
-      "technician_id",
-      "newborns_count",
-    ]);
-
-    if (isStep1Valid) {
-      syncNewbornsArray(watchNewbornsCount);
-      setStep(2);
-    }
-  };
+  }, [entryCauses, states, newbornTypes, isEdit, reset, watch]);
 
   const isFormLoading =
     isLoadingBirthTypes ||
@@ -191,11 +157,7 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
     isLoadingLivestock;
 
   return {
-    step,
     methods,
-    fields,
-    handleNext,
-    handleBack: () => setStep(1),
     isFormLoading,
     birthTypes,
     newbornTypes,
