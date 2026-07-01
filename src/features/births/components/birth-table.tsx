@@ -3,7 +3,6 @@
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Edit, MoreHorizontal, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
@@ -26,15 +25,20 @@ import {
 
 import { Birth } from "../types";
 import { useBirthsList } from "../hooks/useBirths";
-import { useDeleteBirth } from "../hooks/useMutateBirths";
+import { useDeleteBirth, useUpdateBirth } from "../hooks/useMutateBirths";
+import { BirthWizardForm } from "./birth-wizard-form";
 
 export function BirthTable() {
-  const router = useRouter();
   const [params, setParams] = React.useState<SpatieQueryParams>({});
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<number | null>(null);
 
+  // States for modal editing on same page
+  const [editingBirth, setEditingBirth] = React.useState<Birth | undefined>(undefined);
+  const [isEditOpen, setIsEditOpen] = React.useState(false);
+
   const { data: response, isLoading } = useBirthsList(params);
   const { mutate: deleteMutate, isPending: isDeleting } = useDeleteBirth();
+  const { mutate: updateMutate, isPending: isUpdating } = useUpdateBirth(editingBirth?.id || 0);
 
   const columns = React.useMemo<ColumnDef<Birth, any>[]>(() => [
     {
@@ -157,7 +161,8 @@ export function BirthTable() {
               
               <DropdownMenuItem
                 onClick={() => {
-                  router.push(`/dashboard/reproduction/births/${birth.id}/edit`);
+                  setEditingBirth(birth);
+                  setIsEditOpen(true);
                 }}
               >
                 <Edit className="mr-2 h-4 w-4" />
@@ -177,7 +182,7 @@ export function BirthTable() {
         );
       },
     },
-  ], [router]);
+  ], []);
 
   const birthsData = response?.data || [];
 
@@ -195,6 +200,27 @@ export function BirthTable() {
         defaultIncludes={["mother", "birthType", "newborns"]}
         onStateChange={setParams}
       />
+
+      {/* Modal de Edición */}
+      {isEditOpen && editingBirth && (
+        <BirthWizardForm
+          open={isEditOpen}
+          onOpenChange={(open) => {
+            setIsEditOpen(open);
+            if (!open) setEditingBirth(undefined);
+          }}
+          initialData={editingBirth}
+          onSubmit={(data) => {
+            updateMutate(data, {
+              onSuccess: () => {
+                setIsEditOpen(false);
+                setEditingBirth(undefined);
+              },
+            });
+          }}
+          isPending={isUpdating}
+        />
+      )}
 
       {/* Modal de Confirmación de Eliminación */}
       <Dialog open={confirmDeleteId !== null} onOpenChange={(open: boolean) => !open && setConfirmDeleteId(null)}>
