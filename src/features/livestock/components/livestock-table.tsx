@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
-import {ANIMAL_CATEGORY_LABELS, Livestock} from "../types";
+import { ANIMAL_CATEGORY_LABELS, AnimalCategory, Livestock } from "../types";
 import { useLivestockList } from "../hooks/useLivestock";
 import { useDeleteLivestock } from "../hooks/useMutateLivestock";
 import { ArrowUpDown, Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react";
@@ -19,14 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { LivestockDeleteDialog } from "./livestock-delete-dialog";
 import {
   useBreeds,
   useColors,
@@ -56,7 +49,7 @@ export function LivestockTable() {
 
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<number | null>(null);
 
-  const columns: ColumnDef<Livestock, any>[] = [
+  const columns: ColumnDef<Livestock, any>[] = React.useMemo(() => [
     {
       id: "seleccion",
       header: ({ table }) => (
@@ -119,9 +112,8 @@ export function LivestockTable() {
       accessorKey: "animal_category",
       header: "Categoría",
       cell: ({ row }) => {
-        const category = row.getValue("animal_category") as string;
-        const labels: Record<string, string> = ANIMAL_CATEGORY_LABELS;
-        return <span className="text-sm font-medium">{labels[category] || category}</span>;
+        const category = row.getValue("animal_category") as AnimalCategory;
+        return <span className="text-sm font-medium">{ANIMAL_CATEGORY_LABELS[category] || category}</span>;
       },
       meta: {
         label: "Categoría",
@@ -218,7 +210,7 @@ export function LivestockTable() {
         );
       },
     },
-  ];
+  ], [setConfirmDeleteId]);
 
   if (error) {
     return (
@@ -246,35 +238,19 @@ export function LivestockTable() {
         onStateChange={setParams}
       />
 
-      {/* Modal de Confirmación de Eliminación */}
-      <Dialog open={confirmDeleteId !== null} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
-        <DialogContent className="font-montserrat">
-          <DialogHeader>
-            <DialogTitle>¿Está seguro de eliminar este registro?</DialogTitle>
-            <DialogDescription>
-              Esta acción no se puede deshacer. Se removerá la información asociada a este animal de la base de datos.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmDeleteId(null)} disabled={isDeleting}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={isDeleting}
-              onClick={() => {
-                if (confirmDeleteId) {
-                  deleteAnimal(confirmDeleteId, {
-                    onSuccess: () => setConfirmDeleteId(null),
-                  });
-                }
-              }}
-            >
-              {isDeleting ? "Eliminando..." : "Eliminar Registro"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modal de Confirmación de Eliminación Modularizado */}
+      <LivestockDeleteDialog
+        isOpen={confirmDeleteId !== null}
+        onOpenChange={(open) => !open && setConfirmDeleteId(null)}
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            deleteAnimal(confirmDeleteId, {
+              onSuccess: () => setConfirmDeleteId(null),
+            });
+          }
+        }}
+      />
     </>
   );
 }
