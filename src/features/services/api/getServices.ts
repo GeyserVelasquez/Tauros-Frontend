@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { PaginatedResponse } from "@/types";
-import { Service, ServiceType, SemenBatch, EmbrionBatch, Technician } from "../types";
+import { Service, ServiceType, SemenBatch, EmbrionBatch } from "../types";
 
 /**
  * Obtiene la lista paginada de servicios reproductivos desde el backend.
@@ -43,10 +43,4 @@ export async function getEmbrionBatches(): Promise<EmbrionBatch[]> {
   return data.data;
 }
 
-/**
- * Obtiene todos los veterinarios o técnicos.
- */
-export async function getTechnicians(): Promise<Technician[]> {
-  const { data } = await api.get<{ data: Technician[] }>("/technicians");
-  return data.data;
-}
+
