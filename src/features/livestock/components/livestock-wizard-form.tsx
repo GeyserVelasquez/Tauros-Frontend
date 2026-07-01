@@ -1,12 +1,9 @@
 "use client";
 
-import {useRouter} from "next/navigation";
-import {ChevronLeft, ChevronRight, Save} from "lucide-react";
-
-import {Button} from "@/components/ui/button";
 import {FieldGroup} from "@/components/ui/field";
 import {StepIndicator} from "@/components/ui/step-indicator";
 import {StepHeader} from "@/components/ui/step-header";
+import {StepNavigation} from "@/components/ui/step-navigation";
 import {Livestock, LivestockFormData} from "../types";
 import {useLivestockWizardForm} from "../hooks/useLivestockWizardForm";
 import {StepBasicInfo} from "./wizard/step-basic-info";
@@ -38,6 +35,8 @@ const LIVESTOCK_WIZARD_STEPS: Record<number, { title: string; description: strin
     },
 };
 
+const TOTAL_STEPS = Object.keys(LIVESTOCK_WIZARD_STEPS).length;
+
 interface LivestockWizardFormProps {
     initialData?: Livestock;
     onSubmit: (data: LivestockFormData) => void;
@@ -45,12 +44,11 @@ interface LivestockWizardFormProps {
 }
 
 export function LivestockWizardForm({
-                                        initialData,
-                                        onSubmit,
-                                        isPending,
-                                    }: LivestockWizardFormProps) {
-    const router = useRouter();
-
+        initialData,
+        onSubmit,
+        isPending,
+        }: LivestockWizardFormProps)
+    {
     const {
         step,
         handleNext,
@@ -73,7 +71,7 @@ export function LivestockWizardForm({
     return (
         <div className="mx-auto max-w-2xl rounded-xl border bg-card p-6 shadow-sm font-montserrat">
             {/* Indicador de Pasos */}
-            <StepIndicator currentStep={step} totalSteps={5}/>
+            <StepIndicator currentStep={step} totalSteps={TOTAL_STEPS}/>
 
             <StepHeader currentStep={step} stepsConfig={LIVESTOCK_WIZARD_STEPS}/>
 
@@ -130,30 +128,14 @@ export function LivestockWizardForm({
                     </FieldGroup>
 
                     {/* Botones de navegación */}
-                    <div className="mt-8 flex justify-between border-t pt-4">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={step === 1 ? () => router.push("/dashboard/livestock") : handleBack}
-                            disabled={isPending}
-                        >
-                            <ChevronLeft className="mr-2 h-4 w-4"/>
-                            Atrás
-                        </Button>
-
-                        {step < 5 ? (
-                            <Button type="button" onClick={handleNext}>
-                                Siguiente
-                                <ChevronRight className="ml-2 h-4 w-4"/>
-                            </Button>
-                        ) : (
-                            <Button key="submit-button" type="submit" disabled={isPending}
-                                    className="bg-primary hover:bg-primary/95 text-primary-foreground">
-                                <Save className="mr-2 h-4 w-4"/>
-                                {isPending ? "Guardando..." : "Guardar Registro"}
-                            </Button>
-                        )}
-                    </div>
+                    <StepNavigation
+                        currentStep={step}
+                        totalSteps={TOTAL_STEPS}
+                        onBack={handleBack}
+                        onNext={handleNext}
+                        cancelUrl="/dashboard/livestock"
+                        isPending={isPending}
+                    />
                 </form>
             )}
         </div>
