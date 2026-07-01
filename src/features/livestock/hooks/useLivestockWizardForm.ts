@@ -4,15 +4,13 @@ import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { livestockFormSchema, LivestockFormData, Livestock } from "../types";
-import {
-  useBreeds,
-  useColors,
-  useClassifications,
-  useEntryCauses,
-  useStates,
-  useOwners,
-  useTechnicians,
-} from "./useDropdownOptions";
+import { useBreeds } from "@/features/breeds";
+import { useColors } from "@/features/colors";
+import { useClassifications } from "@/features/classifications";
+import { useEntryCauses } from "@/features/entry-causes";
+import { useStates } from "@/features/states";
+import { useOwners } from "@/features/owners";
+import { useTechnicians } from "@/features/technicians";
 import { useLivestockList } from "./useLivestock";
 
 interface UseLivestockWizardFormProps {

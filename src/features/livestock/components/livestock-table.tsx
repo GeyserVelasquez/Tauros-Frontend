@@ -20,12 +20,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LivestockDeleteDialog } from "./livestock-delete-dialog";
-import {
-  useBreeds,
-  useColors,
-  useEntryCauses,
-  useStates,
-} from "../hooks/useDropdownOptions";
+import { useBreeds } from "@/features/breeds";
+import { useColors } from "@/features/colors";
+import { useEntryCauses } from "@/features/entry-causes";
+import { useStates } from "@/features/states";
 
 export function LivestockTable() {
   const [params, setParams] = React.useState<SpatieQueryParams>({});
