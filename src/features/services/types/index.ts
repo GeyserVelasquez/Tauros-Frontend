@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Livestock } from "@/features/livestock";
+import { ParentableType } from "@/features/genetics";
 
 export interface ServiceType {
   id: number;
@@ -51,7 +52,7 @@ export interface Service {
   service_type_id: number;
   made_at: string;
   technician_id: number | null;
-  parentable_type: "livestock" | "semen_batch" | "embrion_batch";
+  parentable_type: ParentableType;
   parentable_id: number;
   
   // Relaciones
