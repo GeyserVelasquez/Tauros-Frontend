@@ -231,7 +231,7 @@ export function BirthWizardForm({
                             field.onChange(val || null);
                             field.onBlur();
                           }}
-                          options={technicians.map((t) => ({ id: t.id, name: t.name }))}
+                          options={technicians.map((t: { id: number; name: string }) => ({ id: t.id, name: t.name }))}
                           placeholder="Seleccionar veterinario..."
                           invalid={fieldState.invalid}
                         />

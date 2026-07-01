@@ -2,7 +2,11 @@ import { useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { birthFlatSchema, BirthFlatFormData, Birth } from "../types";
-import { useEntryCauses, useStates, useColors, useBreeds, useTechnicians } from "@/features/livestock/hooks/useDropdownOptions";
+import { useEntryCauses } from "@/features/entry-causes";
+import { useStates } from "@/features/states";
+import { useColors } from "@/features/colors";
+import { useBreeds } from "@/features/breeds";
+import { useTechnicians } from "@/features/technicians";
 import { useBirthTypes, useNewbornTypes } from "./useBirths";
 import { useLivestockList } from "@/features/livestock/hooks/useLivestock";
 
@@ -132,8 +136,8 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
   useEffect(() => {
     if (!isEdit && entryCauses.length && states.length && newbornTypes.length) {
       if (!watch("entry_cause_id")) {
-        const birthCauseId = entryCauses.find((c) => c.name.toLowerCase().includes("nacimiento"))?.id || 1;
-        const activeStateId = states.find((s) => s.name.toLowerCase().includes("activo"))?.id || 1;
+        const birthCauseId = entryCauses.find((c: { name: string; id: number }) => c.name.toLowerCase().includes("nacimiento"))?.id || 1;
+        const activeStateId = states.find((s: { name: string; id: number }) => s.name.toLowerCase().includes("activo"))?.id || 1;
         const normalTypeId = newbornTypes.find((t) => t.name.toLowerCase().includes("normal"))?.id || 1;
 
         reset({
