@@ -22,9 +22,9 @@ export const newbornRequiredSchema = z.object({
   animal_category: z.enum(["heifer_calf", "bull_calf"], {
     message: "Seleccione una categoría válida",
   }),
-  entry_cause_id: z.number().min(1, "La causa es obligatoria"),
-  state_id: z.number().min(1, "El estado es obligatorio"),
-  newborn_type_id: z.number().min(1, "El tipo es obligatorio"),
+  entry_cause_id: z.coerce.number().min(1, "La causa es obligatoria"),
+  state_id: z.coerce.number().min(1, "El estado es obligatorio"),
+  newborn_type_id: z.coerce.number().min(1, "El tipo es obligatorio"),
 });
 
 // 3. Esquema Datos Opcionales de una Cría (Paso 2 - Collapsible)
@@ -45,9 +45,26 @@ export const birthWizardSchema = baseBirthSchema.extend({
   newborns: z.array(newbornFormSchema).optional(),
 });
 
+export const birthFlatSchema = baseBirthSchema.extend({
+  brand_number: z.string().min(1, "El número de marca/arete es obligatorio").toUpperCase(),
+  animal_category: z.enum(["heifer_calf", "bull_calf"], {
+    message: "Seleccione una categoría válida",
+  }),
+  entry_cause_id: z.coerce.number().min(1, "La causa es obligatoria"),
+  state_id: z.coerce.number().min(1, "El estado es obligatorio"),
+  newborn_type_id: z.coerce.number().min(1, "El tipo es obligatorio"),
+  color_id: z.number().nullable().optional(),
+  breed_id: z.number().nullable().optional(),
+  father_id: z.number().nullable().optional(),
+  electronic_code: z.string().nullable().optional(),
+  name: z.string().nullable().optional(),
+  general_comment: z.string().nullable().optional(),
+});
+
 export type NewbornFormData = z.infer<typeof newbornFormSchema>;
 export type BirthFormData = z.infer<typeof baseBirthSchema>;
 export type BirthWizardData = z.infer<typeof birthWizardSchema>;
+export type BirthFlatFormData = z.infer<typeof birthFlatSchema>;
 
 // Interfaces del recurso API Laravel
 export interface Newborn {
