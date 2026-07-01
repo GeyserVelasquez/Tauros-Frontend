@@ -93,3 +93,15 @@ export interface Livestock {
   batch?: { id: number; name: string };
 }
 
+export const FEMALE_CATEGORIES: AnimalCategory[] = ["cow", "heifer", "female_yearling", "heifer_calf"];
+export const MALE_CATEGORIES: AnimalCategory[] = ["bull", "steer", "male_yearling", "bull_calf"];
+
+export function isFemaleCategory(category: string): category is AnimalCategory {
+  return FEMALE_CATEGORIES.includes(category as AnimalCategory);
+}
+
+export function isMaleCategory(category: string): category is AnimalCategory {
+  return MALE_CATEGORIES.includes(category as AnimalCategory);
+}
+
+
