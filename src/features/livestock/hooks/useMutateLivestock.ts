@@ -43,53 +43,19 @@ export function useUpdateLivestock() {
 
 /**
  * Hook para eliminar un animal.
- * Implementa Optimistic Updates para mejorar la experiencia de usuario bajo redes rurales lentas.
  */
 export function useDeleteLivestock() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: deleteLivestock,
-    onMutate: async (id: string | number) => {
-      // Cancelar consultas salientes para evitar sobreescribir la actualización optimista
-      await queryClient.cancelQueries({ queryKey: ["livestock"] });
-
-      // Respaldar estado previo del cache
-      const previousLivestock = queryClient.getQueryData(["livestock"]);
-
-      // Actualizar optimistamente el cache removiendo el registro
-      queryClient.setQueriesData({ queryKey: ["livestock"] }, (old: any) => {
-        if (!old) return old;
-        // Soporte para respuestas paginadas (PaginatedResponse)
-        if (old.data && Array.isArray(old.data)) {
-          return {
-            ...old,
-            data: old.data.filter((item: any) => item.id !== id),
-          };
-        }
-        // Soporte para listas simples
-        if (Array.isArray(old)) {
-          return old.filter((item: any) => item.id !== id);
-        }
-        return old;
-      });
-
-      return { previousLivestock };
-    },
-    onError: (error: any, id, context) => {
-      // Revertir al estado anterior en caso de fallo
-      if (context?.previousLivestock) {
-        queryClient.setQueryData(["livestock"], context.previousLivestock);
-      }
-      const message = error.response?.data?.message || "Error al eliminar el animal.";
-      toast.error(message);
-    },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["livestock"] });
       toast.success("Animal eliminado exitosamente.");
     },
-    onSettled: () => {
-      // Sincronizar cache con el servidor al finalizar
-      queryClient.invalidateQueries({ queryKey: ["livestock"] });
+    onError: (error: any) => {
+      const message = error.response?.data?.message || "Error al eliminar el animal.";
+      toast.error(message);
     },
   });
 }
