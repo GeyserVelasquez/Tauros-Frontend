@@ -3,7 +3,6 @@
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Edit, MoreHorizontal, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
@@ -15,20 +14,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 import { Service, SemenBatch, EmbrionBatch } from "../types";
-import { useServicesList, useServiceTypes, useTechniciansList } from "../hooks/useServices";
+import { useServicesList, useServiceTypes } from "../hooks/useServices";
+import { useTechnicians } from "@/features/technicians";
 import { useDeleteService } from "../hooks/useMutateServices";
 import { ServiceFormModal } from "./service-form-modal";
+import { ServiceDeleteDialog } from "./service-delete-dialog";
 import { Livestock } from "@/features/livestock";
+
+const PARENTABLE_TYPE_LABELS: Record<string, string> = {
+  livestock: "Toro",
+  semen_batch: "Semen",
+  embrion_batch: "Embrión",
+};
 
 export function ServiceTable() {
   const [params, setParams] = React.useState<SpatieQueryParams>({});
@@ -39,7 +38,7 @@ export function ServiceTable() {
 
   // Consultas para los catálogos de filtros
   const { data: serviceTypes = [] } = useServiceTypes();
-  const { data: technicians = [] } = useTechniciansList();
+  const { data: technicians = [] } = useTechnicians();
 
   // Definición de campos de filtrado para el DataTable
   const filterFields = React.useMemo(() => [
@@ -69,7 +68,7 @@ export function ServiceTable() {
   const [editingService, setEditingService] = React.useState<Service | undefined>(undefined);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
-  const columns: ColumnDef<Service, any>[] = [
+  const columns: ColumnDef<Service, any>[] = React.useMemo(() => [
     {
       accessorKey: "made_at",
       header: ({ column }) => (
@@ -115,12 +114,7 @@ export function ServiceTable() {
       header: "Origen",
       cell: ({ row }) => {
         const type = row.getValue("parentable_type") as string;
-        const labels: Record<string, string> = {
-          livestock: "Toro",
-          semen_batch: "Semen",
-          embrion_batch: "Embrion",
-        };
-        return <span className="">{labels[type] || type}</span>;
+        return <span>{PARENTABLE_TYPE_LABELS[type] || type}</span>;
       },
       meta: {
         label: "Origen",
@@ -199,7 +193,7 @@ export function ServiceTable() {
         );
       },
     },
-  ];
+  ], [setEditingService, setIsEditModalOpen, setConfirmDeleteId]);
 
   if (error) {
     return (
@@ -239,42 +233,19 @@ export function ServiceTable() {
         />
       )}
 
-      {/* Modal de Confirmación de Eliminación */}
-      <Dialog
-        open={confirmDeleteId !== null}
+      {/* Modal de Confirmación de Eliminación Modularizado */}
+      <ServiceDeleteDialog
+        isOpen={confirmDeleteId !== null}
         onOpenChange={(open) => !open && setConfirmDeleteId(null)}
-      >
-        <DialogContent className="font-montserrat">
-          <DialogHeader>
-            <DialogTitle>¿Está seguro de eliminar este registro de servicio?</DialogTitle>
-            <DialogDescription>
-              Esta acción no se puede deshacer. Se removerá la información asociada a este servicio de la base de datos.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDeleteId(null)}
-              disabled={isDeleting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={isDeleting}
-              onClick={() => {
-                if (confirmDeleteId) {
-                  deleteService(confirmDeleteId, {
-                    onSuccess: () => setConfirmDeleteId(null),
-                  });
-                }
-              }}
-            >
-              {isDeleting ? "Eliminando..." : "Eliminar Registro"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            deleteService(confirmDeleteId, {
+              onSuccess: () => setConfirmDeleteId(null),
+            });
+          }
+        }}
+      />
     </>
   );
 }
