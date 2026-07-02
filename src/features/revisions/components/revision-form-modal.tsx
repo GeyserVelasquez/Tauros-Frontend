@@ -156,9 +156,9 @@ export function RevisionFormModal({
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="font-montserrat">
           <DrawerHeader className="text-left">
-            <DrawerTitle>{isEdit ? "Editar Palpación" : "Registrar Palpación"}</DrawerTitle>
+            <DrawerTitle>{isEdit ? "Editar Revisión" : "Registrar Revisión"}</DrawerTitle>
             <DrawerDescription>
-              Ingrese los detalles del diagnóstico reproductivo (palpación).
+              Ingrese los detalles de la Revisión.
             </DrawerDescription>
           </DrawerHeader>
           <div className="px-4 overflow-y-auto max-h-[60vh]">
@@ -181,7 +181,7 @@ export function RevisionFormModal({
               className="w-full active:scale-95 transition-transform"
             >
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEdit ? "Guardar Cambios" : "Confirmar Palpación"}
+              {isEdit ? "Guardar Cambios" : "Confirmar Revisión"}
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               Cancelar
@@ -196,9 +196,9 @@ export function RevisionFormModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px] font-montserrat backdrop-blur-sm">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar Palpación" : "Registrar Palpación"}</DialogTitle>
+          <DialogTitle>{isEdit ? "Editar Revisión" : "Registrar Revisión"}</DialogTitle>
           <DialogDescription>
-            Ingrese los detalles del diagnóstico reproductivo (palpación).
+            Ingrese los detalles de la revisión.
           </DialogDescription>
         </DialogHeader>
         
@@ -226,7 +226,7 @@ export function RevisionFormModal({
                 className="active:scale-95 transition-transform"
               >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isEdit ? "Guardar Cambios" : "Confirmar Palpación"}
+                {isEdit ? "Guardar Cambios" : "Confirmar Revisión"}
               </Button>
             </div>
           </form>

@@ -4,7 +4,7 @@ import { Livestock } from "@/features/livestock";
 export const revisionFormSchema = z.object({
   livestock_id: z.number({ message: "Debe seleccionar un animal" }).min(1, "El animal es obligatorio"),
   made_at: z.string().min(1, "La fecha de registro es obligatoria"),
-  revision_result: z.enum(["pregnant", "empty", "waiting"], {
+  revision_result: z.enum(["pregnant", "empty", "waiting", "heat"], {
     message: "Resultado de revisión inválido",
   }),
   revision_type_id: z.number({ message: "Debe seleccionar el tipo de revisión" }).min(1, "El tipo es obligatorio"),
@@ -13,12 +13,13 @@ export const revisionFormSchema = z.object({
 
 export type RevisionFormData = z.infer<typeof revisionFormSchema>;
 
-export type RevisionResult = "pregnant" | "empty" | "waiting";
+export type RevisionResult = "pregnant" | "empty" | "waiting" | "heat";
 
 export const REVISION_RESULT_LABELS: Record<RevisionResult, string> = {
   pregnant: "Preñada",
   empty: "Vacía",
   waiting: "En Espera",
+  heat: "En Celo",
 };
 
 export const REVISION_RESULT_OPTIONS = Object.entries(REVISION_RESULT_LABELS).map(

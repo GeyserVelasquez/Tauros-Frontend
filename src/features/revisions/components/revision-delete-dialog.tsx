@@ -27,9 +27,9 @@ export function RevisionDeleteDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="font-montserrat">
         <DialogHeader>
-          <DialogTitle>¿Está seguro de eliminar este registro de palpación?</DialogTitle>
+          <DialogTitle>¿Está seguro de eliminar este registro de revisión?</DialogTitle>
           <DialogDescription>
-            Esta acción no se puede deshacer. Se removerá la información asociada a esta palpación/revisión.
+            Esta acción no se puede deshacer. Se removerá la información asociada a esta revisión.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

@@ -84,6 +84,9 @@ src/
 ├── lib/              # Configuration (Axios instance, TanStack)
 └── store/            # Global state (Zustand)
 ```
+#### 3.1.2 Atomics Components
+The project architecture follows the **Atomic Design** paradigm. You must keep components as granular and single-purpose as possible. Prioritize creating numerous short, modular components over a few large, complex ones.
+
 === tdd & testing ===
 # 4. Test-Driven Development (TDD)
 - Code is not complete without tests. You must ensure nothing breaks when adding new features.

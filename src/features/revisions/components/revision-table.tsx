@@ -106,6 +106,7 @@ export function RevisionTable() {
           pregnant: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-850 hover:bg-emerald-100 dark:hover:bg-emerald-950",
           empty: "bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-850 hover:bg-red-100 dark:hover:bg-red-950",
           waiting: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-850 hover:bg-amber-100 dark:hover:bg-amber-950",
+          heat: "bg-pink-100 text-pink-800 border-pink-300 dark:bg-pink-950 dark:text-pink-300 dark:border-pink-850 hover:bg-pink-100 dark:hover:bg-pink-950",
         };
 
         const className = resultStyles[result] || "";
@@ -162,7 +163,7 @@ export function RevisionTable() {
   if (error) {
     return (
       <div className="p-8 text-center font-montserrat text-red-500">
-        Error al cargar el historial de palpaciones. Por favor, intente nuevamente.
+        Error al cargar el historial de revisiones. Por favor, intente nuevamente.
       </div>
     );
   }

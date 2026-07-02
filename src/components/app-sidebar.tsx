@@ -69,7 +69,7 @@ const data = {
           url: "/dashboard/reproduction/services",
         },
         {
-          title: "Palpaciones",
+          title: "Revisiones",
           url: "/dashboard/reproduction/revisions",
         },
         {
