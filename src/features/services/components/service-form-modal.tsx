@@ -18,6 +18,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Service } from "../types";
 import { useServiceForm } from "../hooks/useServiceForm";
+import {
+  PARENTABLE_TYPE_OPTIONS,
+  PARENTABLE_TYPE_FORM_LABELS,
+  ParentableType,
+  PARENTABLE_TYPE_LABELS
+} from "@/features/genetics";
 
 interface ServiceFormModalProps {
   open: boolean;
@@ -109,11 +115,7 @@ export function ServiceFormModal({
                 <SearchableSelect
                   value={field.value}
                   onChange={field.onChange}
-                  options={[
-                    { id: "livestock", name: "Monta Natural" },
-                    { id: "semen_batch", name: "Inseminación Artificial" },
-                    { id: "embrion_batch", name: "Transplante de Embrion" },
-                  ]}
+                  options={PARENTABLE_TYPE_OPTIONS}
                   placeholder="Seleccionar origen"
                   disabled={isEdit}
                 />
@@ -128,28 +130,21 @@ export function ServiceFormModal({
       {parentableType && (
         <Field data-invalid={!!errors.parentable_id}>
           <FieldLabel>
-            {parentableType === "livestock" && "Padrote / Toro *"}
-            {parentableType === "semen_batch" && "Lote de Semen *"}
-            {parentableType === "embrion_batch" && "Lote de Embriones *"}
+            {PARENTABLE_TYPE_LABELS[parentableType as ParentableType]}
           </FieldLabel>
           <FieldContent>
             <Controller
               name="parentable_id"
               control={control}
               render={({ field }) => {
-                let options: { id: number | string; name: string }[] = [];
-                let placeholder = "Seleccionar...";
+                const optionsMap: Record<ParentableType, any[]> = {
+                  livestock: bullOptions,
+                  semen_batch: semenOptions,
+                  embrion_batch: embrionOptions,
+                };
 
-                if (parentableType === "livestock") {
-                  options = bullOptions;
-                  placeholder = "Seleccionar padrote...";
-                } else if (parentableType === "semen_batch") {
-                  options = semenOptions;
-                  placeholder = "Seleccionar lote de semen...";
-                } else if (parentableType === "embrion_batch") {
-                  options = embrionOptions;
-                  placeholder = "Seleccionar lote de embriones...";
-                }
+                const options = optionsMap[parentableType as ParentableType] || [];
+                const placeholder = `Seleccionar ${PARENTABLE_TYPE_LABELS[parentableType as ParentableType].toLowerCase()}`;
 
                 return (
                   <SearchableSelect

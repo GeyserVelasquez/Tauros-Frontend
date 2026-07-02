@@ -2,8 +2,8 @@ export type ParentableType = "livestock" | "semen_batch" | "embrion_batch";
 
 export const PARENTABLE_TYPE_LABELS: Record<ParentableType, string> = {
   livestock: "Toro",
-  semen_batch: "Semen",
-  embrion_batch: "Embrión",
+  semen_batch: "Lote de Semen",
+  embrion_batch: "Lote de Embrión",
 };
 
 export const PARENTABLE_TYPE_PLURAL_LABELS: Record<ParentableType, string> = {
