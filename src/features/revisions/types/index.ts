@@ -13,6 +13,21 @@ export const revisionFormSchema = z.object({
 
 export type RevisionFormData = z.infer<typeof revisionFormSchema>;
 
+export type RevisionResult = "pregnant" | "empty" | "waiting";
+
+export const REVISION_RESULT_LABELS: Record<RevisionResult, string> = {
+  pregnant: "Preñada",
+  empty: "Vacía",
+  waiting: "En Espera",
+};
+
+export const REVISION_RESULT_OPTIONS = Object.entries(REVISION_RESULT_LABELS).map(
+  ([id, name]) => ({
+    id: id as RevisionResult,
+    name,
+  })
+);
+
 export interface RevisionType {
   id: number;
   code: string;
@@ -28,7 +43,7 @@ export interface Revision {
   id: number;
   livestock_id: number;
   made_at: string;
-  revision_result: "pregnant" | "empty" | "waiting";
+  revision_result: RevisionResult;
   revision_type_id: number;
   technician_id: number | null;
   livestock?: Livestock;

@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { Revision } from "../types";
+import { Revision, REVISION_RESULT_OPTIONS } from "../types";
 import { useRevisionForm } from "../hooks/useRevisionForm";
 
 interface RevisionFormModalProps {
@@ -104,11 +104,7 @@ export function RevisionFormModal({
                 <SearchableSelect
                   value={field.value}
                   onChange={field.onChange}
-                  options={[
-                    { id: "pregnant", name: "Preñada" },
-                    { id: "empty", name: "Vacía" },
-                    { id: "waiting", name: "En Espera" },
-                  ]}
+                  options={REVISION_RESULT_OPTIONS}
                   placeholder="Seleccionar resultado..."
                 />
               )}

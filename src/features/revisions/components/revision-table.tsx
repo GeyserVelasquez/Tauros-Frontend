@@ -9,7 +9,7 @@ import { DataTable, SpatieQueryParams } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
 import { TableActions } from "@/components/ui/table-actions";
 
-import { Revision } from "../types";
+import { Revision, RevisionResult, REVISION_RESULT_LABELS, REVISION_RESULT_OPTIONS } from "../types";
 import { useRevisionsList, useRevisionTypes } from "../hooks/useRevisions";
 import { useTechnicians } from "@/features/technicians";
 import { useDeleteRevision } from "../hooks/useMutateRevisions";
@@ -41,11 +41,7 @@ export function RevisionTable() {
     {
       id: "revision_result",
       placeholder: "Todos los resultados",
-      options: [
-        { id: "pregnant", name: "Preñada" },
-        { id: "empty", name: "Vacía" },
-        { id: "waiting", name: "En Espera" },
-      ],
+      options: REVISION_RESULT_OPTIONS,
     },
     {
       id: "technician_id",
@@ -103,25 +99,19 @@ export function RevisionTable() {
       accessorKey: "revision_result",
       header: "Resultado",
       cell: ({ row }) => {
-        const result = row.getValue("revision_result") as string;
-        
-        let label = "Desconocido";
-        let variant: "default" | "secondary" | "destructive" | "outline" = "outline";
-        let className = "";
+        const result = row.getValue("revision_result") as RevisionResult;
+        const label = REVISION_RESULT_LABELS[result] || "Desconocido";
 
-        if (result === "pregnant") {
-          label = "Preñada";
-          className = "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-850 hover:bg-emerald-100 dark:hover:bg-emerald-950";
-        } else if (result === "empty") {
-          label = "Vacía";
-          className = "bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-850 hover:bg-red-100 dark:hover:bg-red-950";
-        } else if (result === "waiting") {
-          label = "En Espera";
-          className = "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-850 hover:bg-amber-100 dark:hover:bg-amber-950";
-        }
+        const resultStyles: Record<RevisionResult, string> = {
+          pregnant: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-850 hover:bg-emerald-100 dark:hover:bg-emerald-950",
+          empty: "bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-850 hover:bg-red-100 dark:hover:bg-red-950",
+          waiting: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-850 hover:bg-amber-100 dark:hover:bg-amber-950",
+        };
+
+        const className = resultStyles[result] || "";
 
         return (
-          <Badge variant={variant} className={`font-semibold tracking-wide py-0.5 px-2.5 ${className}`}>
+          <Badge variant="outline" className={`font-semibold tracking-wide py-0.5 px-2.5 ${className}`}>
             {label}
           </Badge>
         );
