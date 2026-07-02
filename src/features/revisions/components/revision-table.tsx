@@ -2,32 +2,19 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { ArrowUpDown, Edit, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { TableActions } from "@/components/ui/table-actions";
 
 import { Revision } from "../types";
-import { useRevisionsList, useRevisionTypes, useTechniciansList } from "../hooks/useRevisions";
+import { useRevisionsList, useRevisionTypes } from "../hooks/useRevisions";
+import { useTechnicians } from "@/features/technicians";
 import { useDeleteRevision } from "../hooks/useMutateRevisions";
 import { RevisionFormModal } from "./revision-form-modal";
+import { RevisionDeleteDialog } from "./revision-delete-dialog";
 
 export function RevisionTable() {
   const [params, setParams] = React.useState<SpatieQueryParams>({});
@@ -37,7 +24,7 @@ export function RevisionTable() {
   const { mutate: deleteRevision, isPending: isDeleting } = useDeleteRevision();
 
   const { data: revisionTypes = [] } = useRevisionTypes();
-  const { data: technicians = [] } = useTechniciansList();
+  const { data: technicians = [] } = useTechnicians();
 
   // Modals state
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<number | null>(null);
@@ -67,7 +54,7 @@ export function RevisionTable() {
     },
   ], [revisionTypes, technicians]);
 
-  const columns: ColumnDef<Revision, any>[] = [
+  const columns: ColumnDef<Revision, any>[] = React.useMemo(() => [
     {
       accessorKey: "made_at",
       header: ({ column }) => (
@@ -158,41 +145,29 @@ export function RevisionTable() {
         const revision = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menú</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="font-montserrat">
-              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem
-                onClick={() => {
+          <TableActions
+            actions={[
+              {
+                label: "Editar Registro",
+                icon: Edit,
+                onClick: () => {
                   setEditingRevision(revision);
                   setIsEditModalOpen(true);
-                }}
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Editar Registro
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setConfirmDeleteId(revision.id)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar Registro
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                },
+              },
+              {
+                label: "Eliminar Registro",
+                icon: Trash2,
+                variant: "destructive",
+                showSeparatorBefore: true,
+                onClick: () => setConfirmDeleteId(revision.id),
+              },
+            ]}
+          />
         );
       },
     },
-  ];
+  ], [setEditingRevision, setIsEditModalOpen, setConfirmDeleteId]);
 
   if (error) {
     return (
@@ -232,42 +207,19 @@ export function RevisionTable() {
         />
       )}
 
-      {/* Modal de Eliminación */}
-      <Dialog
-        open={confirmDeleteId !== null}
+      {/* Modal de Confirmación de Eliminación */}
+      <RevisionDeleteDialog
+        isOpen={confirmDeleteId !== null}
         onOpenChange={(open) => !open && setConfirmDeleteId(null)}
-      >
-        <DialogContent className="font-montserrat">
-          <DialogHeader>
-            <DialogTitle>¿Está seguro de eliminar este registro de palpación?</DialogTitle>
-            <DialogDescription>
-              Esta acción no se puede deshacer. Se removerá la información asociada a esta palpación/revisión.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDeleteId(null)}
-              disabled={isDeleting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={isDeleting}
-              onClick={() => {
-                if (confirmDeleteId) {
-                  deleteRevision(confirmDeleteId, {
-                    onSuccess: () => setConfirmDeleteId(null),
-                  });
-                }
-              }}
-            >
-              {isDeleting ? "Eliminando..." : "Eliminar Registro"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            deleteRevision(confirmDeleteId, {
+              onSuccess: () => setConfirmDeleteId(null),
+            });
+          }
+        }}
+      />
     </>
   );
 }
