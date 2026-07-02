@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { PaginatedResponse } from "@/types";
-import { Abort, AbortType, AbortFormData, Technician } from "../types";
+import { Abort, AbortType, AbortFormData } from "../types";
 
 /**
  * Obtiene la lista paginada de abortos registrados.
@@ -26,13 +26,7 @@ export async function getAbortTypes(): Promise<AbortType[]> {
   return data.data;
 }
 
-/**
- * Obtiene los veterinarios o técnicos.
- */
-export async function getTechnicians(): Promise<Technician[]> {
-  const { data } = await api.get<{ data: Technician[] }>("/technicians");
-  return data.data;
-}
+
 
 /**
  * Registra un nuevo evento de aborto.
