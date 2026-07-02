@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { PaginatedResponse } from "@/types";
-import { Revision, RevisionType, RevisionFormData, Technician } from "../types";
+import { Revision, RevisionType, RevisionFormData } from "../types";
 
 /**
  * Obtiene la lista paginada de palpaciones/revisiones.
@@ -26,13 +26,7 @@ export async function getRevisionTypes(): Promise<RevisionType[]> {
   return data.data;
 }
 
-/**
- * Obtiene los veterinarios o técnicos.
- */
-export async function getTechnicians(): Promise<Technician[]> {
-  const { data } = await api.get<{ data: Technician[] }>("/technicians");
-  return data.data;
-}
+
 
 /**
  * Registra una nueva revisión/palpación.
