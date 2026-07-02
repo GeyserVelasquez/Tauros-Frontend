@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,18 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { useLivestockList } from "@/features/livestock/hooks/useLivestock";
-
-import {
-  revisionFormSchema,
-  RevisionFormData,
-  Revision,
-} from "../types";
-import {
-  useRevisionTypes,
-  useTechniciansList,
-} from "../hooks/useRevisions";
-import { useCreateRevision, useUpdateRevision } from "../hooks/useMutateRevisions";
+import { Revision } from "../types";
+import { useRevisionForm } from "../hooks/useRevisionForm";
 
 interface RevisionFormModalProps {
   open: boolean;
@@ -45,100 +33,20 @@ export function RevisionFormModal({
   initialData,
 }: RevisionFormModalProps) {
   const isMobile = useIsMobile();
-  const isEdit = !!initialData;
-
-  // Catálogos
-  const { data: revisionTypes = [], isLoading: isLoadingTypes } = useRevisionTypes();
-  const { data: technicians = [], isLoading: isLoadingTechnicians } = useTechniciansList();
-  
-  // Ganado hembra
-  const { data: livestockResponse, isLoading: isLoadingLivestock } = useLivestockList({ per_page: 1000 });
-  const livestockList = livestockResponse?.data || [];
-
-  // Mutaciones
-  const { mutate: createRevision, isPending: isCreating } = useCreateRevision();
-  const { mutate: updateRevision, isPending: isUpdating } = useUpdateRevision();
-  const isPending = isCreating || isUpdating;
-
-  // Filtrado de hembras
-  const femaleCategories = ["cow", "heifer", "female_yearling", "heifer_calf"];
-  const femaleOptions = useMemo(() => {
-    const list = livestockList
-      .filter((animal) => animal.is_alive && animal.is_enabled && femaleCategories.includes(animal.animal_category))
-      .map((animal) => ({
-        id: animal.id,
-        name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
-      }));
-
-    if (initialData?.livestock && !list.some((item) => item.id === initialData.livestock_id)) {
-      list.push({
-        id: initialData.livestock_id,
-        name: `${initialData.livestock.brand_number} ${initialData.livestock.name ? `- ${initialData.livestock.name}` : ""}`,
-      });
-    }
-
-    return list;
-  }, [livestockList, initialData]);
-
-  const technicianOptions = useMemo(() => {
-    return technicians.map((t) => ({ id: t.id, name: t.name }));
-  }, [technicians]);
-
-  // Valores por defecto
-  const defaultValues = useMemo<Partial<RevisionFormData>>(() => {
-    if (initialData) {
-      return {
-        livestock_id: initialData.livestock_id,
-        made_at: initialData.made_at ? initialData.made_at.split("T")[0] : "",
-        revision_result: initialData.revision_result,
-        revision_type_id: initialData.revision_type_id,
-        technician_id: initialData.technician_id,
-      };
-    }
-    return {
-      livestock_id: livestockId || undefined,
-      made_at: new Date().toISOString().split("T")[0],
-      revision_result: "empty",
-      revision_type_id: undefined,
-      technician_id: null,
-    };
-  }, [initialData, livestockId]);
 
   const {
+    isEdit,
+    isFormLoading,
+    isPending,
     register,
     handleSubmit,
     control,
-    reset,
-    formState: { errors },
-  } = useForm<RevisionFormData>({
-    resolver: zodResolver(revisionFormSchema),
-    defaultValues,
-    mode: "onChange",
-  });
-
-  // Reiniciar el formulario al abrir/cerrar o cambiar datos iniciales
-  useEffect(() => {
-    if (open) {
-      reset(defaultValues);
-    }
-  }, [open, reset, defaultValues]);
-
-  const onSubmit = (data: RevisionFormData) => {
-    if (isEdit && initialData) {
-      updateRevision(
-        { id: initialData.id, formData: data },
-        {
-          onSuccess: () => onOpenChange(false),
-        }
-      );
-    } else {
-      createRevision(data, {
-        onSuccess: () => onOpenChange(false),
-      });
-    }
-  };
-
-  const isFormLoading = isLoadingTypes || isLoadingTechnicians || isLoadingLivestock;
+    errors,
+    femaleOptions,
+    technicianOptions,
+    revisionTypes,
+    onSubmit,
+  } = useRevisionForm({ open, onOpenChange, livestockId, initialData });
 
   const formFields = (
     <FieldGroup className="space-y-4 py-2 font-montserrat">
