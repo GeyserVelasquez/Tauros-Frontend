@@ -81,8 +81,8 @@ const data = {
           url: "/dashboard/reproduction/aborts",
         },
         {
-          title: "Genéticas",
-          url: "#",
+          title: "Extracciones",
+          url: "/dashboard/reproduction/extractions",
         },
       ],
     },
