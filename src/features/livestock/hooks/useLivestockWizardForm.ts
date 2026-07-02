@@ -33,27 +33,48 @@ export function useLivestockWizardForm({
   const { data: owners = [], isLoading: isLoadingOwners } = useOwners();
   const { data: technicians = [], isLoading: isLoadingTechnicians } = useTechnicians();
   
-  // Carga de opciones de ganado para genealogía
-  const { data: livestockData } = useLivestockList();
-  const rawLivestockOptions = livestockData?.data || [];
+  // Carga de opciones de ganado para genealogía (filtrado por categorías adultas/aptas)
+  const { data: livestockResponse } = useLivestockList({
+    per_page: 1000,
+    animal_category: ["bull", "steer", "cow", "heifer"],
+  });
+  const rawLivestock = livestockResponse?.data || [];
 
-  // Mapear opciones de ganado a { id, name }
-  const livestockOptions = useMemo(() => {
-    const list = rawLivestockOptions.map((animal) => ({
-      id: animal.id,
-      name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
-    }));
+  // Mapear y filtrar padres (toros/novillos)
+  const fatherOptions = useMemo(() => {
+    const list = rawLivestock
+      .filter((animal) => ["bull", "steer"].includes(animal.animal_category))
+      .map((animal) => ({
+        id: animal.id,
+        name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
+      }));
 
-    // Asegurarse de inyectar las relaciones iniciales en caso de edición para que no desaparezcan de la lista
+    if (initialData?.father && !list.some((item) => item.id === initialData.father_id)) {
+      list.push({
+        id: initialData.father.id,
+        name: `${initialData.father.brand_number} ${initialData.father.name ? `- ${initialData.father.name}` : ""}`,
+      });
+    }
+    return list;
+  }, [rawLivestock, initialData]);
+
+  // Mapear y filtrar madres (vacas/novillas)
+  const motherOptions = useMemo(() => {
+    const list = rawLivestock
+      .filter((animal) => ["cow", "heifer"].includes(animal.animal_category))
+      .map((animal) => ({
+        id: animal.id,
+        name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
+      }));
+
     if (initialData) {
-      const extraAnimals = [
-        initialData.father,
+      const extraMothers = [
         initialData.mother,
         initialData.adoptive_mother,
         initialData.receiving_mother,
       ].filter(Boolean) as Livestock[];
 
-      extraAnimals.forEach((extra) => {
+      extraMothers.forEach((extra) => {
         if (!list.some((item) => item.id === extra.id)) {
           list.push({
             id: extra.id,
@@ -62,9 +83,8 @@ export function useLivestockWizardForm({
         }
       });
     }
-
     return list;
-  }, [rawLivestockOptions, initialData]);
+  }, [rawLivestock, initialData]);
 
   const defaultData = useMemo(() => ({
     brand_number: initialData?.brand_number || "",
@@ -150,6 +170,7 @@ export function useLivestockWizardForm({
     states,
     owners,
     technicians,
-    livestockOptions,
+    fatherOptions,
+    motherOptions,
   };
 }

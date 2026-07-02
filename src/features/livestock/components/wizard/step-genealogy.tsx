@@ -15,7 +15,8 @@ interface StepGenealogyProps {
   errors: FieldErrors<LivestockFormData>;
   owners: { id: number; name: string }[];
   technicians: { id: number; name: string }[];
-  livestockOptions: { id: number; name: string }[];
+  fatherOptions: { id: number; name: string }[];
+  motherOptions: { id: number; name: string }[];
 }
 
 export function StepGenealogy({
@@ -23,7 +24,8 @@ export function StepGenealogy({
   errors,
   owners,
   technicians,
-  livestockOptions,
+  fatherOptions,
+  motherOptions,
 }: StepGenealogyProps) {
   return (
     <>
@@ -78,7 +80,7 @@ export function StepGenealogy({
                 <SearchableSelect
                   value={field.value}
                   onChange={field.onChange}
-                  options={livestockOptions}
+                  options={fatherOptions}
                   placeholder="Buscar Padre..."
                 />
               )}
@@ -97,7 +99,7 @@ export function StepGenealogy({
                 <SearchableSelect
                   value={field.value}
                   onChange={field.onChange}
-                  options={livestockOptions}
+                  options={motherOptions}
                   placeholder="Buscar Madre..."
                 />
               )}
@@ -118,7 +120,7 @@ export function StepGenealogy({
                 <SearchableSelect
                   value={field.value}
                   onChange={field.onChange}
-                  options={livestockOptions}
+                  options={motherOptions}
                   placeholder="Buscar Madre Adoptiva..."
                 />
               )}
@@ -137,7 +139,7 @@ export function StepGenealogy({
                 <SearchableSelect
                   value={field.value}
                   onChange={field.onChange}
-                  options={livestockOptions}
+                  options={motherOptions}
                   placeholder="Buscar Receptora..."
                 />
               )}

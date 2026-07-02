@@ -65,7 +65,8 @@ export function LivestockWizardForm({
         states,
         owners,
         technicians,
-        livestockOptions,
+        fatherOptions,
+        motherOptions,
     } = useLivestockWizardForm({initialData, onSubmit});
 
     return (
@@ -115,7 +116,8 @@ export function LivestockWizardForm({
                                 errors={errors}
                                 owners={owners}
                                 technicians={technicians}
-                                livestockOptions={livestockOptions}
+                                fatherOptions={fatherOptions}
+                                motherOptions={motherOptions}
                             />
                         )}
 
