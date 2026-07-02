@@ -12,7 +12,7 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function AnimalDetailPage({ params }: PageProps) {
+export default function LivestockDetailPage({ params }: PageProps) {
   const { id } = use(params);
 
   return (
