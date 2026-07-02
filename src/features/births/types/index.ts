@@ -88,3 +88,8 @@ export interface Birth {
   birth_type?: LookupItem;
   newborns?: Newborn[];
 }
+
+export const NEWBORN_CATEGORY_OPTIONS = [
+  { id: "heifer_calf", name: "Hembra (Becerra)" },
+  { id: "bull_calf", name: "Macho (Becerro)" },
+];
