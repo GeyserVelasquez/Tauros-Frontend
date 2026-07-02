@@ -99,7 +99,7 @@ const data = {
         },
         {
           title: "Diagnósticos",
-          url: "#",
+          url: "/dashboard/health/diagnostics",
         },
         {
           title: "Tratamientos",
