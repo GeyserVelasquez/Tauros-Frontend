@@ -103,7 +103,7 @@ const data = {
         },
         {
           title: "Tratamientos",
-          url: "#",
+          url: "/dashboard/health/treatments",
         },
       ],
     },
