@@ -1,6 +1,7 @@
 import { useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { FEMALE_CATEGORIES } from "@/features/livestock";
 import { birthFlatSchema, BirthFlatFormData, Birth } from "../types";
 import { useEntryCauses } from "@/features/entry-causes";
 import { useStates } from "@/features/states";
@@ -31,10 +32,9 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
   const livestockList = livestockResponse?.data || [];
 
   // Filter gestating mothers (females)
-  const femaleCategories = ["cow", "heifer", "female_yearling", "heifer_calf"];
   const femaleOptions = useMemo(() => {
     const list = livestockList
-      .filter((animal) => animal.is_alive && animal.is_enabled && femaleCategories.includes(animal.animal_category))
+      .filter((animal) => animal.is_alive && animal.is_enabled && FEMALE_CATEGORIES.includes(animal.animal_category))
       .map((animal) => ({
         id: animal.id,
         name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
