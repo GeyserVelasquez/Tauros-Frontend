@@ -2,31 +2,17 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { ArrowUpDown, Edit, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { TableActions } from "@/components/ui/table-actions";
 
 import { Birth } from "../types";
 import { useBirthsList } from "../hooks/useBirths";
 import { useDeleteBirth, useUpdateBirth } from "../hooks/useMutateBirths";
 import { BirthWizardForm } from "./birth-wizard-form";
+import { BirthDeleteDialog } from "./birth-delete-dialog";
 
 export function BirthTable() {
   const [params, setParams] = React.useState<SpatieQueryParams>({});
@@ -148,41 +134,29 @@ export function BirthTable() {
         const birth = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menú</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem
-                onClick={() => {
+          <TableActions
+            actions={[
+              {
+                label: "Editar Registro",
+                icon: Edit,
+                onClick: () => {
                   setEditingBirth(birth);
                   setIsEditOpen(true);
-                }}
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Editar Registro
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setConfirmDeleteId(birth.id)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar Registro
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                },
+              },
+              {
+                label: "Eliminar Registro",
+                icon: Trash2,
+                variant: "destructive",
+                showSeparatorBefore: true,
+                onClick: () => setConfirmDeleteId(birth.id),
+              },
+            ]}
+          />
         );
       },
     },
-  ], []);
+  ], [setEditingBirth, setIsEditOpen, setConfirmDeleteId]);
 
   const birthsData = response?.data || [];
 
@@ -223,34 +197,18 @@ export function BirthTable() {
       )}
 
       {/* Modal de Confirmación de Eliminación */}
-      <Dialog open={confirmDeleteId !== null} onOpenChange={(open: boolean) => !open && setConfirmDeleteId(null)}>
-        <DialogContent className="font-montserrat">
-          <DialogHeader>
-            <DialogTitle>¿Está seguro de eliminar este registro?</DialogTitle>
-            <DialogDescription>
-              Esta acción no se puede deshacer. Se removerá la información asociada a este parto de la base de datos.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmDeleteId(null)} disabled={isDeleting}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={isDeleting}
-              onClick={() => {
-                if (confirmDeleteId) {
-                  deleteMutate(confirmDeleteId, {
-                    onSuccess: () => setConfirmDeleteId(null),
-                  });
-                }
-              }}
-            >
-              {isDeleting ? "Eliminando..." : "Eliminar Registro"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <BirthDeleteDialog
+        isOpen={confirmDeleteId !== null}
+        onOpenChange={(open) => !open && setConfirmDeleteId(null)}
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            deleteMutate(confirmDeleteId, {
+              onSuccess: () => setConfirmDeleteId(null),
+            });
+          }
+        }}
+      />
     </>
   );
 }
