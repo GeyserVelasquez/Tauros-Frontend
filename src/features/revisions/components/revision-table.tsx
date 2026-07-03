@@ -2,32 +2,19 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { ArrowUpDown, Edit, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { TableActions } from "@/components/ui/table-actions";
 
-import { Revision } from "../types";
-import { useRevisionsList, useRevisionTypes, useTechniciansList } from "../hooks/useRevisions";
+import { Revision, RevisionResult, REVISION_RESULT_LABELS, REVISION_RESULT_OPTIONS } from "../types";
+import { useRevisionsList, useRevisionTypes } from "../hooks/useRevisions";
+import { useTechnicians } from "@/features/technicians";
 import { useDeleteRevision } from "../hooks/useMutateRevisions";
 import { RevisionFormModal } from "./revision-form-modal";
+import { RevisionDeleteDialog } from "./revision-delete-dialog";
 
 export function RevisionTable() {
   const [params, setParams] = React.useState<SpatieQueryParams>({});
@@ -37,7 +24,7 @@ export function RevisionTable() {
   const { mutate: deleteRevision, isPending: isDeleting } = useDeleteRevision();
 
   const { data: revisionTypes = [] } = useRevisionTypes();
-  const { data: technicians = [] } = useTechniciansList();
+  const { data: technicians = [] } = useTechnicians();
 
   // Modals state
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<number | null>(null);
@@ -54,11 +41,7 @@ export function RevisionTable() {
     {
       id: "revision_result",
       placeholder: "Todos los resultados",
-      options: [
-        { id: "pregnant", name: "Preñada" },
-        { id: "empty", name: "Vacía" },
-        { id: "waiting", name: "En Espera" },
-      ],
+      options: REVISION_RESULT_OPTIONS,
     },
     {
       id: "technician_id",
@@ -67,7 +50,7 @@ export function RevisionTable() {
     },
   ], [revisionTypes, technicians]);
 
-  const columns: ColumnDef<Revision, any>[] = [
+  const columns: ColumnDef<Revision, any>[] = React.useMemo(() => [
     {
       accessorKey: "made_at",
       header: ({ column }) => (
@@ -116,25 +99,20 @@ export function RevisionTable() {
       accessorKey: "revision_result",
       header: "Resultado",
       cell: ({ row }) => {
-        const result = row.getValue("revision_result") as string;
-        
-        let label = "Desconocido";
-        let variant: "default" | "secondary" | "destructive" | "outline" = "outline";
-        let className = "";
+        const result = row.getValue("revision_result") as RevisionResult;
+        const label = REVISION_RESULT_LABELS[result] || "Desconocido";
 
-        if (result === "pregnant") {
-          label = "Preñada";
-          className = "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-850 hover:bg-emerald-100 dark:hover:bg-emerald-950";
-        } else if (result === "empty") {
-          label = "Vacía";
-          className = "bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-850 hover:bg-red-100 dark:hover:bg-red-950";
-        } else if (result === "waiting") {
-          label = "En Espera";
-          className = "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-850 hover:bg-amber-100 dark:hover:bg-amber-950";
-        }
+        const resultStyles: Record<RevisionResult, string> = {
+          pregnant: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-850 hover:bg-emerald-100 dark:hover:bg-emerald-950",
+          empty: "bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-850 hover:bg-red-100 dark:hover:bg-red-950",
+          waiting: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-850 hover:bg-amber-100 dark:hover:bg-amber-950",
+          heat: "bg-pink-100 text-pink-800 border-pink-300 dark:bg-pink-950 dark:text-pink-300 dark:border-pink-850 hover:bg-pink-100 dark:hover:bg-pink-950",
+        };
+
+        const className = resultStyles[result] || "";
 
         return (
-          <Badge variant={variant} className={`font-semibold tracking-wide py-0.5 px-2.5 ${className}`}>
+          <Badge variant="outline" className={`font-semibold tracking-wide py-0.5 px-2.5 ${className}`}>
             {label}
           </Badge>
         );
@@ -158,46 +136,34 @@ export function RevisionTable() {
         const revision = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menú</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="font-montserrat">
-              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem
-                onClick={() => {
+          <TableActions
+            actions={[
+              {
+                label: "Editar Registro",
+                icon: Edit,
+                onClick: () => {
                   setEditingRevision(revision);
                   setIsEditModalOpen(true);
-                }}
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Editar Registro
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setConfirmDeleteId(revision.id)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar Registro
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                },
+              },
+              {
+                label: "Eliminar Registro",
+                icon: Trash2,
+                variant: "destructive",
+                showSeparatorBefore: true,
+                onClick: () => setConfirmDeleteId(revision.id),
+              },
+            ]}
+          />
         );
       },
     },
-  ];
+  ], [setEditingRevision, setIsEditModalOpen, setConfirmDeleteId]);
 
   if (error) {
     return (
       <div className="p-8 text-center font-montserrat text-red-500">
-        Error al cargar el historial de palpaciones. Por favor, intente nuevamente.
+        Error al cargar el historial de revisiones. Por favor, intente nuevamente.
       </div>
     );
   }
@@ -232,42 +198,19 @@ export function RevisionTable() {
         />
       )}
 
-      {/* Modal de Eliminación */}
-      <Dialog
-        open={confirmDeleteId !== null}
+      {/* Modal de Confirmación de Eliminación */}
+      <RevisionDeleteDialog
+        isOpen={confirmDeleteId !== null}
         onOpenChange={(open) => !open && setConfirmDeleteId(null)}
-      >
-        <DialogContent className="font-montserrat">
-          <DialogHeader>
-            <DialogTitle>¿Está seguro de eliminar este registro de palpación?</DialogTitle>
-            <DialogDescription>
-              Esta acción no se puede deshacer. Se removerá la información asociada a esta palpación/revisión.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDeleteId(null)}
-              disabled={isDeleting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={isDeleting}
-              onClick={() => {
-                if (confirmDeleteId) {
-                  deleteRevision(confirmDeleteId, {
-                    onSuccess: () => setConfirmDeleteId(null),
-                  });
-                }
-              }}
-            >
-              {isDeleting ? "Eliminando..." : "Eliminar Registro"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            deleteRevision(confirmDeleteId, {
+              onSuccess: () => setConfirmDeleteId(null),
+            });
+          }
+        }}
+      />
     </>
   );
 }

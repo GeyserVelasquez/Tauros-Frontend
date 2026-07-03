@@ -11,20 +11,41 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLivestockById } from "../hooks/useLivestock";
-import { ServiceFormModal } from "@/features/services";
-import { RevisionFormModal } from "@/features/revisions";
-import { AbortFormModal } from "@/features/aborts";
+import { ANIMAL_CATEGORY_LABELS, Livestock } from "../types";
 
 interface LivestockDetailProps {
   id: string | number;
+  renderExtraActions?: (
+    animal: Livestock,
+    actions: {
+      setIsServiceOpen: (open: boolean) => void;
+      setIsRevisionOpen: (open: boolean) => void;
+      setIsAbortOpen: (open: boolean) => void;
+    }
+  ) => React.ReactNode;
+  renderExtraModals?: (
+    animal: Livestock,
+    states: {
+      isServiceOpen: boolean;
+      setIsServiceOpen: (open: boolean) => void;
+      isRevisionOpen: boolean;
+      setIsRevisionOpen: (open: boolean) => void;
+      isAbortOpen: boolean;
+      setIsAbortOpen: (open: boolean) => void;
+    }
+  ) => React.ReactNode;
 }
 
-export function LivestockDetail({ id }: LivestockDetailProps) {
+export function LivestockDetail({
+  id,
+  renderExtraActions,
+  renderExtraModals,
+}: LivestockDetailProps) {
   const router = useRouter();
   const [isServiceModalOpen, setIsServiceModalOpen] = React.useState(false);
   const [isRevisionModalOpen, setIsRevisionModalOpen] = React.useState(false);
   const [isAbortModalOpen, setIsAbortModalOpen] = React.useState(false);
-  
+
   // Cargar animal con todas sus relaciones requeridas
   const { data: animal, isLoading, error } = useLivestockById(id, {
     include: "breed,color,classification,state,entryCause,owner,technician,father,mother,adoptiveMother,receivingMother,currentBatchMovement",
@@ -58,17 +79,6 @@ export function LivestockDetail({ id }: LivestockDetailProps) {
     );
   }
 
-  const categoryLabels: Record<string, string> = {
-    bull: "Toro",
-    steer: "Novillo",
-    male_yearling: "Torete",
-    bull_calf: "Becerro (Macho)",
-    cow: "Vaca",
-    heifer: "Novilla",
-    female_yearling: "Vaquitona",
-    heifer_calf: "Becerro (Hembra)",
-  };
-
   return (
     <div className="space-y-6 font-montserrat">
       {/* Botones de Cabecera */}
@@ -89,22 +99,11 @@ export function LivestockDetail({ id }: LivestockDetailProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {animal && ["cow", "heifer", "female_yearling", "heifer_calf"].includes(animal.animal_category) && (
-            <>
-              <Button variant="outline" onClick={() => setIsServiceModalOpen(true)}>
-                <Calendar className="mr-2 h-4 w-4" />
-                Registrar Servicio
-              </Button>
-              <Button variant="outline" onClick={() => setIsRevisionModalOpen(true)}>
-                <Activity className="mr-2 h-4 w-4" />
-                Palpación
-              </Button>
-              <Button variant="outline" onClick={() => setIsAbortModalOpen(true)}>
-                <FileText className="mr-2 h-4 w-4" />
-                Aborto
-              </Button>
-            </>
-          )}
+          {renderExtraActions?.(animal, {
+            setIsServiceOpen: setIsServiceModalOpen,
+            setIsRevisionOpen: setIsRevisionModalOpen,
+            setIsAbortOpen: setIsAbortModalOpen,
+          })}
           <Button asChild className="bg-primary hover:bg-primary/95 text-primary-foreground">
             <Link href={`/dashboard/livestock/${animal.id}/edit`}>
               <Edit className="mr-2 h-4 w-4" />
@@ -131,7 +130,7 @@ export function LivestockDetail({ id }: LivestockDetailProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Categoría</span>
-                <p className="font-medium text-sm mt-0.5">{categoryLabels[animal.animal_category] || animal.animal_category}</p>
+                <p className="font-medium text-sm mt-0.5">{ANIMAL_CATEGORY_LABELS[animal.animal_category] || animal.animal_category}</p>
               </div>
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Código de Chip</span>
@@ -306,24 +305,15 @@ export function LivestockDetail({ id }: LivestockDetailProps) {
         </Card>
       )}
 
-      {/* Modal de Registro de Servicio */}
-      <ServiceFormModal
-        open={isServiceModalOpen}
-        onOpenChange={setIsServiceModalOpen}
-        femaleId={animal.id}
-      />
-
-      <RevisionFormModal
-        open={isRevisionModalOpen}
-        onOpenChange={setIsRevisionModalOpen}
-        livestockId={animal.id}
-      />
-
-      <AbortFormModal
-        open={isAbortModalOpen}
-        onOpenChange={setIsAbortModalOpen}
-        livestockId={animal.id}
-      />
+      {/* Modales de Acciones Inyectados por Composición */}
+      {renderExtraModals?.(animal, {
+        isServiceOpen: isServiceModalOpen,
+        setIsServiceOpen: setIsServiceModalOpen,
+        isRevisionOpen: isRevisionModalOpen,
+        setIsRevisionOpen: setIsRevisionModalOpen,
+        isAbortOpen: isAbortModalOpen,
+        setIsAbortOpen: setIsAbortModalOpen,
+      })}
     </div>
   );
 }

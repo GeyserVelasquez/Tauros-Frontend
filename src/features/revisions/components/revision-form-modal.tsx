@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,19 +15,9 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SearchableSelect } from "@/features/livestock/components/searchable-select";
-import { useLivestockList } from "@/features/livestock/hooks/useLivestock";
-
-import {
-  revisionFormSchema,
-  RevisionFormData,
-  Revision,
-} from "../types";
-import {
-  useRevisionTypes,
-  useTechniciansList,
-} from "../hooks/useRevisions";
-import { useCreateRevision, useUpdateRevision } from "../hooks/useMutateRevisions";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Revision, REVISION_RESULT_OPTIONS } from "../types";
+import { useRevisionForm } from "../hooks/useRevisionForm";
 
 interface RevisionFormModalProps {
   open: boolean;
@@ -45,100 +33,20 @@ export function RevisionFormModal({
   initialData,
 }: RevisionFormModalProps) {
   const isMobile = useIsMobile();
-  const isEdit = !!initialData;
-
-  // Catálogos
-  const { data: revisionTypes = [], isLoading: isLoadingTypes } = useRevisionTypes();
-  const { data: technicians = [], isLoading: isLoadingTechnicians } = useTechniciansList();
-  
-  // Ganado hembra
-  const { data: livestockResponse, isLoading: isLoadingLivestock } = useLivestockList({ per_page: 1000 });
-  const livestockList = livestockResponse?.data || [];
-
-  // Mutaciones
-  const { mutate: createRevision, isPending: isCreating } = useCreateRevision();
-  const { mutate: updateRevision, isPending: isUpdating } = useUpdateRevision();
-  const isPending = isCreating || isUpdating;
-
-  // Filtrado de hembras
-  const femaleCategories = ["cow", "heifer", "female_yearling", "heifer_calf"];
-  const femaleOptions = useMemo(() => {
-    const list = livestockList
-      .filter((animal) => animal.is_alive && animal.is_enabled && femaleCategories.includes(animal.animal_category))
-      .map((animal) => ({
-        id: animal.id,
-        name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
-      }));
-
-    if (initialData?.livestock && !list.some((item) => item.id === initialData.livestock_id)) {
-      list.push({
-        id: initialData.livestock_id,
-        name: `${initialData.livestock.brand_number} ${initialData.livestock.name ? `- ${initialData.livestock.name}` : ""}`,
-      });
-    }
-
-    return list;
-  }, [livestockList, initialData]);
-
-  const technicianOptions = useMemo(() => {
-    return technicians.map((t) => ({ id: t.id, name: t.name }));
-  }, [technicians]);
-
-  // Valores por defecto
-  const defaultValues = useMemo<Partial<RevisionFormData>>(() => {
-    if (initialData) {
-      return {
-        livestock_id: initialData.livestock_id,
-        made_at: initialData.made_at ? initialData.made_at.split("T")[0] : "",
-        revision_result: initialData.revision_result,
-        revision_type_id: initialData.revision_type_id,
-        technician_id: initialData.technician_id,
-      };
-    }
-    return {
-      livestock_id: livestockId || undefined,
-      made_at: new Date().toISOString().split("T")[0],
-      revision_result: "empty",
-      revision_type_id: undefined,
-      technician_id: null,
-    };
-  }, [initialData, livestockId]);
 
   const {
+    isEdit,
+    isFormLoading,
+    isPending,
     register,
     handleSubmit,
     control,
-    reset,
-    formState: { errors },
-  } = useForm<RevisionFormData>({
-    resolver: zodResolver(revisionFormSchema),
-    defaultValues,
-    mode: "onChange",
-  });
-
-  // Reiniciar el formulario al abrir/cerrar o cambiar datos iniciales
-  useEffect(() => {
-    if (open) {
-      reset(defaultValues);
-    }
-  }, [open, reset, defaultValues]);
-
-  const onSubmit = (data: RevisionFormData) => {
-    if (isEdit && initialData) {
-      updateRevision(
-        { id: initialData.id, formData: data },
-        {
-          onSuccess: () => onOpenChange(false),
-        }
-      );
-    } else {
-      createRevision(data, {
-        onSuccess: () => onOpenChange(false),
-      });
-    }
-  };
-
-  const isFormLoading = isLoadingTypes || isLoadingTechnicians || isLoadingLivestock;
+    errors,
+    femaleOptions,
+    technicianOptions,
+    revisionTypes,
+    onSubmit,
+  } = useRevisionForm({ open, onOpenChange, livestockId, initialData });
 
   const formFields = (
     <FieldGroup className="space-y-4 py-2 font-montserrat">
@@ -196,11 +104,7 @@ export function RevisionFormModal({
                 <SearchableSelect
                   value={field.value}
                   onChange={field.onChange}
-                  options={[
-                    { id: "pregnant", name: "Preñada" },
-                    { id: "empty", name: "Vacía" },
-                    { id: "waiting", name: "En Espera" },
-                  ]}
+                  options={REVISION_RESULT_OPTIONS}
                   placeholder="Seleccionar resultado..."
                 />
               )}
@@ -252,9 +156,9 @@ export function RevisionFormModal({
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="font-montserrat">
           <DrawerHeader className="text-left">
-            <DrawerTitle>{isEdit ? "Editar Palpación" : "Registrar Palpación"}</DrawerTitle>
+            <DrawerTitle>{isEdit ? "Editar Revisión" : "Registrar Revisión"}</DrawerTitle>
             <DrawerDescription>
-              Ingrese los detalles del diagnóstico reproductivo (palpación).
+              Ingrese los detalles de la Revisión.
             </DrawerDescription>
           </DrawerHeader>
           <div className="px-4 overflow-y-auto max-h-[60vh]">
@@ -277,7 +181,7 @@ export function RevisionFormModal({
               className="w-full active:scale-95 transition-transform"
             >
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEdit ? "Guardar Cambios" : "Confirmar Palpación"}
+              {isEdit ? "Guardar Cambios" : "Confirmar Revisión"}
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               Cancelar
@@ -292,9 +196,9 @@ export function RevisionFormModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px] font-montserrat backdrop-blur-sm">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar Palpación" : "Registrar Palpación"}</DialogTitle>
+          <DialogTitle>{isEdit ? "Editar Revisión" : "Registrar Revisión"}</DialogTitle>
           <DialogDescription>
-            Ingrese los detalles del diagnóstico reproductivo (palpación).
+            Ingrese los detalles de la revisión.
           </DialogDescription>
         </DialogHeader>
         
@@ -322,7 +226,7 @@ export function RevisionFormModal({
                 className="active:scale-95 transition-transform"
               >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isEdit ? "Guardar Cambios" : "Confirmar Palpación"}
+                {isEdit ? "Guardar Cambios" : "Confirmar Revisión"}
               </Button>
             </div>
           </form>

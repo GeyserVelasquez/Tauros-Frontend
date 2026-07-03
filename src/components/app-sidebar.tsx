@@ -69,20 +69,20 @@ const data = {
           url: "/dashboard/reproduction/services",
         },
         {
-          title: "Palpaciones",
+          title: "Revisiones",
           url: "/dashboard/reproduction/revisions",
         },
         {
           title: "Partos",
-          url: "#",
+          url: "/dashboard/reproduction/births",
         },
         {
           title: "Abortos",
           url: "/dashboard/reproduction/aborts",
         },
         {
-          title: "Genéticas",
-          url: "#",
+          title: "Extracciones",
+          url: "/dashboard/reproduction/extractions",
         },
       ],
     },
@@ -99,11 +99,11 @@ const data = {
         },
         {
           title: "Diagnósticos",
-          url: "#",
+          url: "/dashboard/health/diagnostics",
         },
         {
           title: "Tratamientos",
-          url: "#",
+          url: "/dashboard/health/treatments",
         },
       ],
     },

@@ -2,33 +2,20 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Edit, MoreHorizontal, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowUpDown, Edit, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { TableActions } from "@/components/ui/table-actions";
 
 import { Service, SemenBatch, EmbrionBatch } from "../types";
-import { useServicesList, useServiceTypes, useTechniciansList } from "../hooks/useServices";
+import { useServicesList, useServiceTypes } from "../hooks/useServices";
+import { useTechnicians } from "@/features/technicians";
 import { useDeleteService } from "../hooks/useMutateServices";
 import { ServiceFormModal } from "./service-form-modal";
+import { ServiceDeleteDialog } from "./service-delete-dialog";
 import { Livestock } from "@/features/livestock";
+import { PARENTABLE_TYPE_LABELS, PARENTABLE_TYPE_OPTIONS, ParentableType } from "@/features/genetics";
 
 export function ServiceTable() {
   const [params, setParams] = React.useState<SpatieQueryParams>({});
@@ -39,7 +26,7 @@ export function ServiceTable() {
 
   // Consultas para los catálogos de filtros
   const { data: serviceTypes = [] } = useServiceTypes();
-  const { data: technicians = [] } = useTechniciansList();
+  const { data: technicians = [] } = useTechnicians();
 
   // Definición de campos de filtrado para el DataTable
   const filterFields = React.useMemo(() => [
@@ -51,11 +38,7 @@ export function ServiceTable() {
     {
       id: "parentable_type",
       placeholder: "Todos los servidores",
-      options: [
-        { id: "livestock", name: "Toros" },
-        { id: "semen_batch", name: "Inseminaciones" },
-        { id: "embrion_batch", name: "Embriones" },
-      ],
+      options: PARENTABLE_TYPE_OPTIONS,
     },
     {
       id: "technician_id",
@@ -69,7 +52,7 @@ export function ServiceTable() {
   const [editingService, setEditingService] = React.useState<Service | undefined>(undefined);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
-  const columns: ColumnDef<Service, any>[] = [
+  const columns: ColumnDef<Service, any>[] = React.useMemo(() => [
     {
       accessorKey: "made_at",
       header: ({ column }) => (
@@ -114,13 +97,8 @@ export function ServiceTable() {
       accessorKey: "parentable_type",
       header: "Origen",
       cell: ({ row }) => {
-        const type = row.getValue("parentable_type") as string;
-        const labels: Record<string, string> = {
-          livestock: "Toro",
-          semen_batch: "Semen",
-          embrion_batch: "Embrion",
-        };
-        return <span className="">{labels[type] || type}</span>;
+        const type = row.getValue("parentable_type") as ParentableType;
+        return <span>{PARENTABLE_TYPE_LABELS[type] || type}</span>;
       },
       meta: {
         label: "Origen",
@@ -134,17 +112,21 @@ export function ServiceTable() {
         const parentable = row.original.parentable;
         if (!parentable) return <span className="text-muted-foreground">—</span>;
 
-        if (type === "livestock") {
-          const bull = parentable as Livestock;
-          return <span className="font-semibold">{bull.brand_number} {bull.name ? `- ${bull.name}` : ""}</span>;
-        } else if (type === "semen_batch") {
-          const semen = parentable as SemenBatch;
-          return <span className="font-semibold">{semen.code} {semen.name ? `- ${semen.name}` : ""}</span>;
-        } else if (type === "embrion_batch") {
-          const embryo = parentable as EmbrionBatch;
-          return <span className="font-semibold">{embryo.code} {embryo.name ? `- ${embryo.name}` : ""}</span>;
-        }
-        return <span className="text-muted-foreground">—</span>;
+        const codeExtractors: Record<ParentableType, (p: any) => string> = {
+          livestock: (p: Livestock) => p.brand_number,
+          semen_batch: (p: SemenBatch) => p.code,
+          embrion_batch: (p: EmbrionBatch) => p.code,
+        };
+
+        const code = codeExtractors[type]?.(parentable);
+        if (!code) return <span className="text-muted-foreground">—</span>;
+
+        const name = (parentable as any).name;
+        return (
+          <span className="font-semibold">
+            {code} {name ? `- ${name}` : ""}
+          </span>
+        );
       },
       meta: {
         label: "Servidor",
@@ -165,41 +147,29 @@ export function ServiceTable() {
         const service = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menú</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem
-                onClick={() => {
+          <TableActions
+            actions={[
+              {
+                label: "Editar Registro",
+                icon: Edit,
+                onClick: () => {
                   setEditingService(service);
                   setIsEditModalOpen(true);
-                }}
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Editar Registro
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setConfirmDeleteId(service.id)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar Registro
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                },
+              },
+              {
+                label: "Eliminar Registro",
+                icon: Trash2,
+                variant: "destructive",
+                showSeparatorBefore: true,
+                onClick: () => setConfirmDeleteId(service.id),
+              },
+            ]}
+          />
         );
       },
     },
-  ];
+  ], [setEditingService, setIsEditModalOpen, setConfirmDeleteId]);
 
   if (error) {
     return (
@@ -239,42 +209,19 @@ export function ServiceTable() {
         />
       )}
 
-      {/* Modal de Confirmación de Eliminación */}
-      <Dialog
-        open={confirmDeleteId !== null}
+      {/* Modal de Confirmación de Eliminación Modularizado */}
+      <ServiceDeleteDialog
+        isOpen={confirmDeleteId !== null}
         onOpenChange={(open) => !open && setConfirmDeleteId(null)}
-      >
-        <DialogContent className="font-montserrat">
-          <DialogHeader>
-            <DialogTitle>¿Está seguro de eliminar este registro de servicio?</DialogTitle>
-            <DialogDescription>
-              Esta acción no se puede deshacer. Se removerá la información asociada a este servicio de la base de datos.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDeleteId(null)}
-              disabled={isDeleting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={isDeleting}
-              onClick={() => {
-                if (confirmDeleteId) {
-                  deleteService(confirmDeleteId, {
-                    onSuccess: () => setConfirmDeleteId(null),
-                  });
-                }
-              }}
-            >
-              {isDeleting ? "Eliminando..." : "Eliminar Registro"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            deleteService(confirmDeleteId, {
+              onSuccess: () => setConfirmDeleteId(null),
+            });
+          }
+        }}
+      />
     </>
   );
 }

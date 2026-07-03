@@ -1,13 +1,10 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Field,
   FieldLabel,
@@ -18,19 +15,9 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SearchableSelect } from "@/features/livestock/components/searchable-select";
-import { useLivestockList } from "@/features/livestock/hooks/useLivestock";
-
-import {
-  abortFormSchema,
-  AbortFormData,
-  Abort,
-} from "../types";
-import {
-  useAbortTypes,
-  useTechniciansList,
-} from "../hooks/useAborts";
-import { useCreateAbort, useUpdateAbort } from "../hooks/useMutateAborts";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Abort } from "../types";
+import { useAbortForm } from "../hooks/useAbortForm";
 
 interface AbortFormModalProps {
   open: boolean;
@@ -46,98 +33,20 @@ export function AbortFormModal({
   initialData,
 }: AbortFormModalProps) {
   const isMobile = useIsMobile();
-  const isEdit = !!initialData;
-
-  // Catálogos
-  const { data: abortTypes = [], isLoading: isLoadingTypes } = useAbortTypes();
-  const { data: technicians = [], isLoading: isLoadingTechnicians } = useTechniciansList();
-  
-  // Ganado hembra
-  const { data: livestockResponse, isLoading: isLoadingLivestock } = useLivestockList({ per_page: 1000 });
-  const livestockList = livestockResponse?.data || [];
-
-  // Mutaciones
-  const { mutate: createAbort, isPending: isCreating } = useCreateAbort();
-  const { mutate: updateAbort, isPending: isUpdating } = useUpdateAbort();
-  const isPending = isCreating || isUpdating;
-
-  // Filtrado de hembras
-  const femaleCategories = ["cow", "heifer", "female_yearling", "heifer_calf"];
-  const femaleOptions = useMemo(() => {
-    const list = livestockList
-      .filter((animal) => animal.is_alive && animal.is_enabled && femaleCategories.includes(animal.animal_category))
-      .map((animal) => ({
-        id: animal.id,
-        name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
-      }));
-
-    if (initialData?.livestock && !list.some((item) => item.id === initialData.livestock_id)) {
-      list.push({
-        id: initialData.livestock_id,
-        name: `${initialData.livestock.brand_number} ${initialData.livestock.name ? `- ${initialData.livestock.name}` : ""}`,
-      });
-    }
-
-    return list;
-  }, [livestockList, initialData]);
-
-  const technicianOptions = useMemo(() => {
-    return technicians.map((t) => ({ id: t.id, name: t.name }));
-  }, [technicians]);
-
-  // Valores por defecto
-  const defaultValues = useMemo<Partial<AbortFormData>>(() => {
-    if (initialData) {
-      return {
-        livestock_id: initialData.livestock_id,
-        made_at: initialData.made_at ? initialData.made_at.split("T")[0] : "",
-        abort_type_id: initialData.abort_type_id,
-        technician_id: initialData.technician_id,
-      };
-    }
-    return {
-      livestock_id: livestockId || undefined,
-      made_at: new Date().toISOString().split("T")[0],
-      abort_type_id: undefined,
-      technician_id: null,
-    };
-  }, [initialData, livestockId]);
 
   const {
+    isEdit,
+    isFormLoading,
+    isPending,
     register,
     handleSubmit,
     control,
-    reset,
-    formState: { errors },
-  } = useForm<AbortFormData>({
-    resolver: zodResolver(abortFormSchema),
-    defaultValues,
-    mode: "onChange",
-  });
-
-  // Reiniciar el formulario al abrir/cerrar o cambiar datos iniciales
-  useEffect(() => {
-    if (open) {
-      reset(defaultValues);
-    }
-  }, [open, reset, defaultValues]);
-
-  const onSubmit = (data: AbortFormData) => {
-    if (isEdit && initialData) {
-      updateAbort(
-        { id: initialData.id, formData: data },
-        {
-          onSuccess: () => onOpenChange(false),
-        }
-      );
-    } else {
-      createAbort(data, {
-        onSuccess: () => onOpenChange(false),
-      });
-    }
-  };
-
-  const isFormLoading = isLoadingTypes || isLoadingTechnicians || isLoadingLivestock;
+    errors,
+    femaleOptions,
+    technicianOptions,
+    abortTypes,
+    onSubmit,
+  } = useAbortForm({ open, onOpenChange, livestockId, initialData });
 
   const formFields = (
     <FieldGroup className="space-y-4 py-2 font-montserrat">
@@ -219,7 +128,6 @@ export function AbortFormModal({
           <FieldError errors={[errors.technician_id]} />
         </FieldContent>
       </Field>
-
     </FieldGroup>
   );
 

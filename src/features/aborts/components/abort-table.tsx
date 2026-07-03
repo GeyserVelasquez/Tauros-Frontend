@@ -2,31 +2,18 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { ArrowUpDown, Edit, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { TableActions } from "@/components/ui/table-actions";
 
 import { Abort } from "../types";
-import { useAbortsList, useAbortTypes, useTechniciansList } from "../hooks/useAborts";
+import { useAbortsList, useAbortTypes } from "../hooks/useAborts";
+import { useTechnicians } from "@/features/technicians";
 import { useDeleteAbort } from "../hooks/useMutateAborts";
 import { AbortFormModal } from "./abort-form-modal";
+import { AbortDeleteDialog } from "./abort-delete-dialog";
 
 export function AbortTable() {
   const [params, setParams] = React.useState<SpatieQueryParams>({});
@@ -36,7 +23,7 @@ export function AbortTable() {
   const { mutate: deleteAbort, isPending: isDeleting } = useDeleteAbort();
 
   const { data: abortTypes = [] } = useAbortTypes();
-  const { data: technicians = [] } = useTechniciansList();
+  const { data: technicians = [] } = useTechnicians();
 
   // Modals state
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<number | null>(null);
@@ -57,7 +44,7 @@ export function AbortTable() {
     },
   ], [abortTypes, technicians]);
 
-  const columns: ColumnDef<Abort, any>[] = [
+  const columns: ColumnDef<Abort, any>[] = React.useMemo(() => [
     {
       accessorKey: "made_at",
       header: ({ column }) => (
@@ -117,41 +104,29 @@ export function AbortTable() {
         const abort = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menú</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="font-montserrat">
-              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem
-                onClick={() => {
+          <TableActions
+            actions={[
+              {
+                label: "Editar Registro",
+                icon: Edit,
+                onClick: () => {
                   setEditingAbort(abort);
                   setIsEditModalOpen(true);
-                }}
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Editar Registro
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setConfirmDeleteId(abort.id)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar Registro
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                },
+              },
+              {
+                label: "Eliminar Registro",
+                icon: Trash2,
+                variant: "destructive",
+                showSeparatorBefore: true,
+                onClick: () => setConfirmDeleteId(abort.id),
+              },
+            ]}
+          />
         );
       },
     },
-  ];
+  ], [setEditingAbort, setIsEditModalOpen, setConfirmDeleteId]);
 
   if (error) {
     return (
@@ -191,42 +166,19 @@ export function AbortTable() {
         />
       )}
 
-      {/* Modal de Eliminación */}
-      <Dialog
-        open={confirmDeleteId !== null}
+      {/* Modal de Confirmación de Eliminación */}
+      <AbortDeleteDialog
+        isOpen={confirmDeleteId !== null}
         onOpenChange={(open) => !open && setConfirmDeleteId(null)}
-      >
-        <DialogContent className="font-montserrat">
-          <DialogHeader>
-            <DialogTitle>¿Está seguro de eliminar este registro de aborto?</DialogTitle>
-            <DialogDescription>
-              Esta acción no se puede deshacer. Se removerá la información asociada a este aborto.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDeleteId(null)}
-              disabled={isDeleting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={isDeleting}
-              onClick={() => {
-                if (confirmDeleteId) {
-                  deleteAbort(confirmDeleteId, {
-                    onSuccess: () => setConfirmDeleteId(null),
-                  });
-                }
-              }}
-            >
-              {isDeleting ? "Eliminando..." : "Eliminar Registro"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            deleteAbort(confirmDeleteId, {
+              onSuccess: () => setConfirmDeleteId(null),
+            });
+          }
+        }}
+      />
     </>
   );
 }

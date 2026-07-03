@@ -124,7 +124,7 @@ export default function Home() {
                     <CheckCircle2 className="h-5 w-5 text-white shrink-0 mt-0.5" />
                     <div>
                       <span className="text-sm font-bold text-white block">Historial Diagnóstico Activo</span>
-                      <span className="text-xs text-zinc-500 block mt-0.5">Acceso inmediato a palpaciones veterinarias y alertas sanitarias en tiempo real.</span>
+                      <span className="text-xs text-zinc-500 block mt-0.5">Acceso inmediato a revisiones veterinarias y alertas sanitarias en tiempo real.</span>
                     </div>
                   </li>
                 </ul>

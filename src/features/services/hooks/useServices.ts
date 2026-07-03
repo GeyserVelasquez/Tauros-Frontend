@@ -5,7 +5,6 @@ import {
   getServiceTypes,
   getSemenBatches,
   getEmbrionBatches,
-  getTechnicians,
 } from "../api/getServices";
 
 /**
@@ -64,13 +63,4 @@ export function useEmbrionBatches() {
   });
 }
 
-/**
- * Hook para obtener la lista de veterinarios y técnicos.
- */
-export function useTechniciansList() {
-  return useQuery({
-    queryKey: ["technicians-list"],
-    queryFn: getTechnicians,
-    staleTime: 24 * 60 * 60 * 1000, // Catálogo estático: caché de 24 horas
-  });
-}
+

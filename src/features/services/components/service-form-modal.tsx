@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,21 +15,15 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SearchableSelect } from "@/features/livestock/components/searchable-select";
-import { useLivestockList } from "@/features/livestock/hooks/useLivestock";
-
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Service } from "../types";
+import { useServiceForm } from "../hooks/useServiceForm";
 import {
-  serviceFormSchema,
-  ServiceFormData,
-  Service,
-} from "../types";
-import {
-  useServiceTypes,
-  useSemenBatches,
-  useEmbrionBatches,
-  useTechniciansList,
-} from "../hooks/useServices";
-import { useCreateService, useUpdateService } from "../hooks/useMutateServices";
+  PARENTABLE_TYPE_OPTIONS,
+  PARENTABLE_TYPE_FORM_LABELS,
+  ParentableType,
+  PARENTABLE_TYPE_LABELS
+} from "@/features/genetics";
 
 interface ServiceFormModalProps {
   open: boolean;
@@ -47,148 +39,24 @@ export function ServiceFormModal({
   initialData,
 }: ServiceFormModalProps) {
   const isMobile = useIsMobile();
-  const isEdit = !!initialData;
-
-  // React Query para catálogos
-  const { data: serviceTypes = [], isLoading: isLoadingTypes } = useServiceTypes();
-  const { data: semenBatches = [], isLoading: isLoadingSemen } = useSemenBatches();
-  const { data: embrionBatches = [], isLoading: isLoadingEmbrion } = useEmbrionBatches();
-  const { data: technicians = [], isLoading: isLoadingTechnicians } = useTechniciansList();
-  
-  // Obtenemos ganado para hembras y padrotes
-  const { data: livestockResponse, isLoading: isLoadingLivestock } = useLivestockList({ per_page: 1000 });
-  const livestockList = livestockResponse?.data || [];
-
-  // Mutaciones
-  const { mutate: createService, isPending: isCreating } = useCreateService();
-  const { mutate: updateService, isPending: isUpdating } = useUpdateService();
-  const isPending = isCreating || isUpdating;
-
-  // Filtrado de hembras
-  const femaleCategories = ["cow", "heifer", "female_yearling", "heifer_calf"];
-  const femaleOptions = useMemo(() => {
-    const list = livestockList
-      .filter((animal) => animal.is_alive && animal.is_enabled && femaleCategories.includes(animal.animal_category))
-      .map((animal) => ({
-        id: animal.id,
-        name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
-      }));
-
-    // Asegurar que si hay una hembra inicial se agregue a las opciones
-    if (initialData?.female && !list.some((item) => item.id === initialData.female_id)) {
-      list.push({
-        id: initialData.female_id,
-        name: `${initialData.female.brand_number} ${initialData.female.name ? `- ${initialData.female.name}` : ""}`,
-      });
-    }
-
-    return list;
-  }, [livestockList, initialData]);
-
-  // Filtrado de machos (padrotes)
-  const maleCategories = ["bull", "steer", "male_yearling", "bull_calf"];
-  const bullOptions = useMemo(() => {
-    return livestockList
-      .filter((animal) => animal.is_alive && animal.is_enabled && maleCategories.includes(animal.animal_category))
-      .map((animal) => ({
-        id: animal.id,
-        name: `${animal.brand_number} ${animal.name ? `- ${animal.name}` : ""}`,
-      }));
-  }, [livestockList]);
-
-  // Mapeos para lotes
-  const semenOptions = useMemo(() => {
-    return semenBatches.map((b) => ({ id: b.id, name: `${b.code} - ${b.name}` }));
-  }, [semenBatches]);
-
-  const embrionOptions = useMemo(() => {
-    return embrionBatches.map((b) => ({ id: b.id, name: `${b.code} - ${b.name}` }));
-  }, [embrionBatches]);
-
-  const technicianOptions = useMemo(() => {
-    return technicians.map((t) => ({ id: t.id, name: t.name }));
-  }, [technicians]);
-
-  // Valores por defecto
-  const defaultValues = useMemo<Partial<ServiceFormData>>(() => {
-    if (initialData) {
-      return {
-        female_id: initialData.female_id,
-        service_type_id: initialData.service_type_id,
-        made_at: initialData.made_at ? initialData.made_at.split("T")[0] : "",
-        technician_id: initialData.technician_id,
-        parentable_type: initialData.parentable_type,
-        parentable_id: initialData.parentable_id,
-      };
-    }
-    return {
-      female_id: femaleId || undefined,
-      service_type_id: undefined,
-      made_at: new Date().toISOString().split("T")[0],
-      technician_id: null,
-      parentable_type: undefined,
-      parentable_id: undefined,
-    };
-  }, [initialData, femaleId]);
 
   const {
+    isEdit,
+    isFormLoading,
+    isPending,
     register,
     handleSubmit,
     control,
-    setValue,
-    watch,
-    reset,
-    formState: { errors },
-  } = useForm<ServiceFormData>({
-    resolver: zodResolver(serviceFormSchema),
-    defaultValues,
-    mode: "onChange",
-  });
-
-  const parentableType = watch("parentable_type");
-  const isFirstRender = useRef(true);
-
-  // Reiniciar el formulario y la bandera del primer renderizado al abrir
-  useEffect(() => {
-    if (open) {
-      reset(defaultValues);
-      isFirstRender.current = true;
-    }
-  }, [open, reset, defaultValues]);
-
-  // Limpiar parentable_id únicamente si cambia el parentable_type por interacción del usuario
-  useEffect(() => {
-    if (parentableType === undefined) return;
-
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-
-    setValue("parentable_id", undefined as any);
-  }, [parentableType, setValue]);
-
-  const onSubmit = (data: ServiceFormData) => {
-    if (isEdit && initialData) {
-      updateService(
-        { id: initialData.id, formData: data },
-        {
-          onSuccess: () => onOpenChange(false),
-        }
-      );
-    } else {
-      createService(data, {
-        onSuccess: () => onOpenChange(false),
-      });
-    }
-  };
-
-  const isFormLoading =
-    isLoadingTypes ||
-    isLoadingSemen ||
-    isLoadingEmbrion ||
-    isLoadingTechnicians ||
-    isLoadingLivestock;
+    errors,
+    parentableType,
+    femaleOptions,
+    bullOptions,
+    semenOptions,
+    embrionOptions,
+    technicianOptions,
+    serviceTypes,
+    onSubmit,
+  } = useServiceForm({ open, onOpenChange, femaleId, initialData });
 
   // Renderizar campos del formulario
   const formFields = (
@@ -247,11 +115,7 @@ export function ServiceFormModal({
                 <SearchableSelect
                   value={field.value}
                   onChange={field.onChange}
-                  options={[
-                    { id: "livestock", name: "Monta Natural" },
-                    { id: "semen_batch", name: "Inseminación Artificial" },
-                    { id: "embrion_batch", name: "Transplante de Embrion" },
-                  ]}
+                  options={PARENTABLE_TYPE_OPTIONS}
                   placeholder="Seleccionar origen"
                   disabled={isEdit}
                 />
@@ -266,28 +130,21 @@ export function ServiceFormModal({
       {parentableType && (
         <Field data-invalid={!!errors.parentable_id}>
           <FieldLabel>
-            {parentableType === "livestock" && "Padrote / Toro *"}
-            {parentableType === "semen_batch" && "Lote de Semen *"}
-            {parentableType === "embrion_batch" && "Lote de Embriones *"}
+            {PARENTABLE_TYPE_LABELS[parentableType as ParentableType]}
           </FieldLabel>
           <FieldContent>
             <Controller
               name="parentable_id"
               control={control}
               render={({ field }) => {
-                let options: { id: number | string; name: string }[] = [];
-                let placeholder = "Seleccionar...";
+                const optionsMap: Record<ParentableType, any[]> = {
+                  livestock: bullOptions,
+                  semen_batch: semenOptions,
+                  embrion_batch: embrionOptions,
+                };
 
-                if (parentableType === "livestock") {
-                  options = bullOptions;
-                  placeholder = "Seleccionar padrote...";
-                } else if (parentableType === "semen_batch") {
-                  options = semenOptions;
-                  placeholder = "Seleccionar lote de semen...";
-                } else if (parentableType === "embrion_batch") {
-                  options = embrionOptions;
-                  placeholder = "Seleccionar lote de embriones...";
-                }
+                const options = optionsMap[parentableType as ParentableType] || [];
+                const placeholder = `Seleccionar ${PARENTABLE_TYPE_LABELS[parentableType as ParentableType].toLowerCase()}`;
 
                 return (
                   <SearchableSelect

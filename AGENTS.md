@@ -84,6 +84,9 @@ src/
 ├── lib/              # Configuration (Axios instance, TanStack)
 └── store/            # Global state (Zustand)
 ```
+#### 3.1.2 Atomics Components
+The project architecture follows the **Atomic Design** paradigm. You must keep components as granular and single-purpose as possible. Prioritize creating numerous short, modular components over a few large, complex ones.
+
 === tdd & testing ===
 # 4. Test-Driven Development (TDD)
 - Code is not complete without tests. You must ensure nothing breaks when adding new features.
@@ -97,5 +100,9 @@ src/
 - **XSS Prevention:** Never use `dangerouslySetInnerHTML`. Rely on React's native escaping.
 - **Auth Handling (Sanctum SPA):** Coordinate with the backend to use HttpOnly cookies. Never store sensitive tokens in LocalStorage or SessionStorage.
 - **Type Safety:** Use strict TypeScript. Define Zod schemas and infer TypeScript interfaces from them. Do not use `any`. Interfaces must strictly match the Laravel API JSON responses.
+
+=== info ===
+# 6. Info
+- **Folders Destination:** Every file .md file that you create must be in one of these folders [/plans, /docs, /trash] , depending on the context and content of the file
 
 <!-- END:nextjs-agent-rules -->
