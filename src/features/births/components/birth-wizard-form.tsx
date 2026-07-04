@@ -34,6 +34,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useBirthWizardForm } from "../hooks/useBirthWizardForm";
 import { Birth, BirthWizardData, BirthFlatFormData, NEWBORN_CATEGORY_OPTIONS } from "../types";
+import { STATE_OPTIONS } from "@/features/livestock";
 
 interface BirthWizardFormProps {
   open: boolean;
@@ -59,7 +60,6 @@ export function BirthWizardForm({
     birthTypes,
     newbornTypes,
     entryCauses,
-    states,
     colors,
     breeds,
     technicians,
@@ -86,7 +86,7 @@ export function BirthWizardForm({
         brand_number: flatData.brand_number,
         animal_category: flatData.animal_category,
         newborn_type_id: flatData.newborn_type_id,
-        state_id: flatData.state_id,
+        state: flatData.state,
         entry_cause_id: flatData.entry_cause_id,
         color_id: flatData.color_id,
         breed_id: flatData.breed_id,
@@ -307,7 +307,7 @@ export function BirthWizardForm({
 
             {/* Estado Inicial */}
             <Controller
-              name="state_id"
+              name="state"
               control={control}
               render={({ field: selectField, fieldState }) => (
                 <Field data-invalid={fieldState.invalid ? "true" : undefined}>
@@ -319,7 +319,7 @@ export function BirthWizardForm({
                         selectField.onChange(val);
                         selectField.onBlur();
                       }}
-                      options={states}
+                      options={STATE_OPTIONS}
                       placeholder="Seleccionar estado..."
                       invalid={fieldState.invalid}
                     />

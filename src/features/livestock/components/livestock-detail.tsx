@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLivestockById } from "../hooks/useLivestock";
-import { ANIMAL_CATEGORY_LABELS, Livestock } from "../types";
+import { ANIMAL_CATEGORY_LABELS, STATE_LABELS, State, Livestock } from "../types";
 
 interface LivestockDetailProps {
   id: string | number;
@@ -48,7 +48,7 @@ export function LivestockDetail({
 
   // Cargar animal con todas sus relaciones requeridas
   const { data: animal, isLoading, error } = useLivestockById(id, {
-    include: "breed,color,classification,state,entryCause,owner,technician,father,mother,adoptiveMother,receivingMother,currentBatchMovement",
+    include: "breed,color,classification,entryCause,owner,technician,father,mother,adoptiveMother,receivingMother,currentBatchMovement",
   });
 
   if (isLoading) {
@@ -154,7 +154,7 @@ export function LivestockDetail({
               </div>
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado Productivo</span>
-                <p className="font-medium text-sm mt-0.5">{animal.state?.name || "—"}</p>
+                <p className="font-medium text-sm mt-0.5">{STATE_LABELS[animal.state as State] || animal.state || "—"}</p>
               </div>
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lote</span>

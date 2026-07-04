@@ -62,7 +62,6 @@ export function LivestockWizardForm({
         colors,
         classifications,
         entryCauses,
-        states,
         owners,
         technicians,
         fatherOptions,
@@ -95,7 +94,6 @@ export function LivestockWizardForm({
                                 control={control}
                                 errors={errors}
                                 entryCauses={entryCauses}
-                                states={states}
                             />
                         )}
 

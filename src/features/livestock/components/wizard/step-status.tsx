@@ -11,14 +11,13 @@ import {
   FieldDescription,
 } from "@/components/ui/field";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { LivestockFormData } from "../../types";
+import { STATE_OPTIONS, LivestockFormData } from "../../types";
 
 interface StepStatusProps {
   register: UseFormRegister<LivestockFormData>;
   control: Control<LivestockFormData>;
   errors: FieldErrors<LivestockFormData>;
   entryCauses: { id: number; name: string }[];
-  states: { id: number; name: string }[];
 }
 
 export function StepStatus({
@@ -26,7 +25,6 @@ export function StepStatus({
   control,
   errors,
   entryCauses,
-  states,
 }: StepStatusProps) {
   return (
     <>
@@ -91,22 +89,22 @@ export function StepStatus({
         </FieldContent>
       </Field>
 
-      <Field data-invalid={!!errors.state_id}>
+      <Field data-invalid={!!errors.state}>
         <FieldLabel>Estado Productivo/Salud *</FieldLabel>
         <FieldContent>
           <Controller
-            name="state_id"
+            name="state"
             control={control}
             render={({ field }) => (
               <SearchableSelect
                 value={field.value || null}
                 onChange={field.onChange}
-                options={states}
+                options={STATE_OPTIONS}
                 placeholder="Seleccionar Estado..."
               />
             )}
           />
-          <FieldError errors={[errors.state_id]} />
+          <FieldError errors={[errors.state]} />
         </FieldContent>
       </Field>
 

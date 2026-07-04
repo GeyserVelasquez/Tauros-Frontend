@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FEMALE_CATEGORIES } from "@/features/livestock";
 import { birthFlatSchema, BirthFlatFormData, Birth } from "../types";
 import { useEntryCauses } from "@/features/entry-causes";
-import { useStates } from "@/features/states";
+
 import { useColors } from "@/features/colors";
 import { useBreeds } from "@/features/breeds";
 import { useTechnicians } from "@/features/technicians";
@@ -22,7 +22,7 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
   const { data: birthTypes = [], isLoading: isLoadingBirthTypes } = useBirthTypes();
   const { data: newbornTypes = [], isLoading: isLoadingNewbornTypes } = useNewbornTypes();
   const { data: entryCauses = [], isLoading: isLoadingCauses } = useEntryCauses();
-  const { data: states = [], isLoading: isLoadingStates } = useStates();
+
   const { data: colors = [], isLoading: isLoadingColors } = useColors();
   const { data: breeds = [], isLoading: isLoadingBreeds } = useBreeds();
   const { data: technicians = [], isLoading: isLoadingTechnicians } = useTechnicians();
@@ -87,7 +87,7 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
         brand_number: firstNewborn?.livestock?.brand_number || "",
         animal_category: (firstNewborn?.livestock?.animal_category as any) || undefined,
         entry_cause_id: firstNewborn?.livestock?.entry_cause_id || undefined as any,
-        state_id: firstNewborn?.livestock?.state_id || undefined as any,
+        state: firstNewborn?.livestock?.state || "healthy",
         newborn_type_id: firstNewborn?.newborn_type_id || undefined as any,
         color_id: firstNewborn?.livestock?.color_id || null,
         breed_id: firstNewborn?.livestock?.breed_id || null,
@@ -108,7 +108,7 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
       brand_number: "",
       animal_category: undefined as any,
       entry_cause_id: undefined as any,
-      state_id: undefined as any,
+      state: "healthy",
       newborn_type_id: undefined as any,
       color_id: null,
       breed_id: null,
@@ -134,27 +134,25 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
 
   // Load default catalog options into creation mode as soon as they finish loading
   useEffect(() => {
-    if (!isEdit && entryCauses.length && states.length && newbornTypes.length) {
+    if (!isEdit && entryCauses.length && newbornTypes.length) {
       if (!watch("entry_cause_id")) {
         const birthCauseId = entryCauses.find((c: { name: string; id: number }) => c.name.toLowerCase().includes("nacimiento"))?.id || 1;
-        const activeStateId = states.find((s: { name: string; id: number }) => s.name.toLowerCase().includes("activo"))?.id || 1;
         const normalTypeId = newbornTypes.find((t) => t.name.toLowerCase().includes("normal"))?.id || 1;
 
         reset({
           ...watch(),
           entry_cause_id: birthCauseId,
-          state_id: activeStateId,
+          state: "healthy",
           newborn_type_id: normalTypeId,
         });
       }
     }
-  }, [entryCauses, states, newbornTypes, isEdit, reset, watch]);
+  }, [entryCauses, newbornTypes, isEdit, reset, watch]);
 
   const isFormLoading =
     isLoadingBirthTypes ||
     isLoadingNewbornTypes ||
     isLoadingCauses ||
-    isLoadingStates ||
     isLoadingColors ||
     isLoadingBreeds ||
     isLoadingTechnicians ||
@@ -166,7 +164,6 @@ export function useBirthWizardForm({ initialData }: UseBirthWizardFormProps = {}
     birthTypes,
     newbornTypes,
     entryCauses,
-    states,
     colors,
     breeds,
     technicians,

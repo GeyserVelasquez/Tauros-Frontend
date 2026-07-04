@@ -8,7 +8,6 @@ import { useBreeds } from "@/features/breeds";
 import { useColors } from "@/features/colors";
 import { useClassifications } from "@/features/classifications";
 import { useEntryCauses } from "@/features/entry-causes";
-import { useStates } from "@/features/states";
 import { useOwners } from "@/features/owners";
 import { useTechnicians } from "@/features/technicians";
 import { useLivestockList } from "./useLivestock";
@@ -29,7 +28,7 @@ export function useLivestockWizardForm({
   const { data: colors = [], isLoading: isLoadingColors } = useColors();
   const { data: classifications = [], isLoading: isLoadingClassifications } = useClassifications();
   const { data: entryCauses = [], isLoading: isLoadingCauses } = useEntryCauses();
-  const { data: states = [], isLoading: isLoadingStates } = useStates();
+
   const { data: owners = [], isLoading: isLoadingOwners } = useOwners();
   const { data: technicians = [], isLoading: isLoadingTechnicians } = useTechnicians();
   
@@ -98,7 +97,7 @@ export function useLivestockWizardForm({
     is_alive: initialData?.is_alive !== undefined ? initialData.is_alive : true,
     animal_category: initialData?.animal_category || "",
     entry_cause_id: initialData?.entry_cause_id || 0,
-    state_id: initialData?.state_id || 0,
+    state: initialData?.state || "healthy",
     breed_id: initialData?.breed_id || null,
     color_id: initialData?.color_id || null,
     classification_id: initialData?.classification_id || null,
@@ -125,7 +124,7 @@ export function useLivestockWizardForm({
   // Campos a validar por cada paso
   const stepFields: Record<number, (keyof LivestockFormData)[]> = {
     1: ["brand_number", "electronic_code", "name", "animal_category"],
-    2: ["is_alive", "is_enabled", "entry_cause_id", "state_id", "birth_date", "entry_date"],
+    2: ["is_alive", "is_enabled", "entry_cause_id", "state", "birth_date", "entry_date"],
     3: ["tits", "breed_id", "color_id", "classification_id"],
     4: ["owner_id", "technician_id", "father_id", "mother_id", "adoptive_mother_id", "receiving_mother_id"],
     5: ["general_comment"],
@@ -148,7 +147,6 @@ export function useLivestockWizardForm({
     isLoadingColors ||
     isLoadingClassifications ||
     isLoadingCauses ||
-    isLoadingStates ||
     isLoadingOwners ||
     isLoadingTechnicians;
 
@@ -167,7 +165,6 @@ export function useLivestockWizardForm({
     colors,
     classifications,
     entryCauses,
-    states,
     owners,
     technicians,
     fatherOptions,
