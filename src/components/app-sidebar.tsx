@@ -95,7 +95,11 @@ const data = {
       items: [
         {
           title: "Historias Clínicas",
-          url: "#",
+          url: "/dashboard/health/clinic-histories",
+        },
+        {
+          title: "Calendario / Agenda",
+          url: "/dashboard/health/agenda",
         },
         {
           title: "Diagnósticos",
