@@ -83,6 +83,8 @@ export function useClinicHistoryWizardForm({ initialData }: UseClinicHistoryWiza
           is_recurring: app.dose_number !== null,
           frequency_hours: undefined, // recurrences aren't easily editable directly this way, reset or defaults
           total_doses: undefined,
+          first_dose_date: app.scheduled_date ? app.scheduled_date.split("T")[0] : new Date().toISOString().split("T")[0],
+          is_first_dose_applied: app.applied_at !== null,
         })),
       };
     }
@@ -100,6 +102,8 @@ export function useClinicHistoryWizardForm({ initialData }: UseClinicHistoryWiza
           supply_id: null,
           quantity: 0.1,
           is_recurring: false,
+          first_dose_date: new Date().toISOString().split("T")[0],
+          is_first_dose_applied: true,
         },
       ],
     };
