@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Edit, Trash2, Plus, Eye, ListFilter } from "lucide-react";
+import { ArrowUpDown, Edit, Trash2, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
@@ -11,47 +12,25 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 
 import { ClinicHistory } from "../types";
-import { useClinicHistoriesList, useDeleteClinicHistory, useCreateClinicHistory, useUpdateClinicHistory } from "../hooks/useClinicHistories";
-import { ClinicHistoryWizardForm } from "./clinic-history-wizard-form";
+import { useClinicHistoriesList, useDeleteClinicHistory } from "../hooks/useClinicHistories";
 
 const DEFAULT_INCLUDES = ["livestock", "technician", "clinicDiagnostics", "clinicalTreatments", "treatmentApplications"];
 
 export function ClinicHistoryTable() {
+  const router = useRouter();
   const [params, setParams] = React.useState<SpatieQueryParams>({
     include: DEFAULT_INCLUDES.join(","),
   });
 
-  // Modal form states
-  const [isFormOpen, setIsFormOpen] = React.useState(false);
-  const [editingHistory, setEditingHistory] = React.useState<ClinicHistory | undefined>(undefined);
-
   const { data: response, isLoading } = useClinicHistoriesList(params);
-  
-  const createMutation = useCreateClinicHistory();
-  const updateMutation = useUpdateClinicHistory();
   const deleteMutation = useDeleteClinicHistory();
 
   const handleOpenCreate = () => {
-    setEditingHistory(undefined);
-    setIsFormOpen(true);
+    router.push("/dashboard/health/clinic-histories/create");
   };
 
   const handleOpenEdit = (history: ClinicHistory) => {
-    setEditingHistory(history);
-    setIsFormOpen(true);
-  };
-
-  const handleFormSubmit = async (data: any) => {
-    try {
-      if (editingHistory) {
-        await updateMutation.mutateAsync({ id: editingHistory.id, formData: data });
-      } else {
-        await createMutation.mutateAsync(data);
-      }
-      setIsFormOpen(false);
-    } catch (error) {
-      // Handled by mutation toast
-    }
+    router.push(`/dashboard/health/clinic-histories/${history.id}/edit`);
   };
 
   const handleDelete = async (id: number) => {
@@ -202,7 +181,7 @@ export function ClinicHistoryTable() {
         />
       ),
     },
-  ], [editingHistory]);
+  ], []);
 
   return (
     <div className="font-montserrat space-y-4">
@@ -232,17 +211,6 @@ export function ClinicHistoryTable() {
           onStateChange={setParams}
         />
       </div>
-
-      {/* Form Wizard Modal */}
-      {isFormOpen && (
-        <ClinicHistoryWizardForm
-          open={isFormOpen}
-          onOpenChange={setIsFormOpen}
-          initialData={editingHistory}
-          onSubmit={handleFormSubmit}
-          isPending={createMutation.isPending || updateMutation.isPending}
-        />
-      )}
     </div>
   );
 }
