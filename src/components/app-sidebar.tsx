@@ -48,12 +48,12 @@ const data = {
           url: "/dashboard/livestock",
         },
         {
-          title: "Lotes y Rebaños",
-          url: "#",
+          title: "Lotes",
+          url: "/dashboard/batches",
         },
         {
-          title: "Rotación",
-          url: "#",
+          title: "Potreros",
+          url: "/dashboard/paddocks",
         },
       ],
     },
