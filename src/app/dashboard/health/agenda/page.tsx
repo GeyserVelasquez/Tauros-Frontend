@@ -2,14 +2,16 @@ import { TreatmentCalendar } from "@/features/treatment-applications/components/
 
 export default function AgendaPage() {
   return (
-    <div className="space-y-4">
-      <div className="bg-white dark:bg-neutral-900 p-4 border rounded-lg border-neutral-200 dark:border-neutral-800">
-        <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 font-montserrat">Calendario Veterinario</h1>
-        <p className="text-sm text-muted-foreground font-montserrat">
+    <div className="flex flex-1 flex-col gap-6 p-6 font-montserrat">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight">Calendario Veterinario</h1>
+        <p className="text-muted-foreground text-sm">
           Planifique y supervise la aplicación de tratamientos y vacunas para el ganado de forma visual.
         </p>
       </div>
-      <TreatmentCalendar />
+      <div className="mt-4">
+        <TreatmentCalendar />
+      </div>
     </div>
   );
 }
