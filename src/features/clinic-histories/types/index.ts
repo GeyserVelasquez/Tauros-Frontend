@@ -19,6 +19,8 @@ export const clinicHistoryTreatmentItemSchema = z.object({
   clinical_treatment_id: z.union([z.string(), z.number()]).transform((val) => String(val)),
   supply_id: z.union([z.string(), z.number()]).nullable().optional().transform((val) => val ? String(val) : null),
   quantity: z.coerce.number().min(0.01, "La cantidad debe ser mayor a 0"),
+  first_dose_date: z.string().optional(),
+  is_first_dose_applied: z.boolean().default(true),
   
   is_recurring: z.boolean().default(false),
   frequency_hours: z.coerce.number().min(1).optional(),
@@ -59,7 +61,8 @@ export interface ClinicHistory {
   livestock?: {
     id: number;
     name: string;
-    code: string;
+    brand_number: string;
+    code?: string;
   };
   technician?: {
     id: number;

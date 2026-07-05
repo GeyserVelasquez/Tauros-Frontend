@@ -18,7 +18,8 @@ export interface TreatmentApplication {
   livestock?: {
     id: number;
     name: string;
-    code: string;
+    brand_number: string;
+    code?: string;
   };
   clinical_treatment?: {
     id: number;
