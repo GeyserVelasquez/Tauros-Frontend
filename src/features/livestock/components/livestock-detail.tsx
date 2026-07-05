@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Edit, Calendar, User, FileText, Activity } from "lucide-react";
+import { ArrowLeft, Edit, Calendar, User, FileText, Activity, Map, Tag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLivestockById } from "../hooks/useLivestock";
 import { ANIMAL_CATEGORY_LABELS, STATE_LABELS, State, Livestock } from "../types";
+import { LivestockMovePaddockDialog } from "./livestock-move-paddock-dialog";
+import { LivestockMoveBatchDialog } from "./livestock-move-batch-dialog";
 
 interface LivestockDetailProps {
   id: string | number;
@@ -45,10 +47,12 @@ export function LivestockDetail({
   const [isServiceModalOpen, setIsServiceModalOpen] = React.useState(false);
   const [isRevisionModalOpen, setIsRevisionModalOpen] = React.useState(false);
   const [isAbortModalOpen, setIsAbortModalOpen] = React.useState(false);
+  const [isMovePaddockOpen, setIsMovePaddockOpen] = React.useState(false);
+  const [isMoveBatchOpen, setIsMoveBatchOpen] = React.useState(false);
 
   // Cargar animal con todas sus relaciones requeridas
   const { data: animal, isLoading, error } = useLivestockById(id, {
-    include: "breed,color,classification,entryCause,owner,technician,father,mother,adoptiveMother,receivingMother,currentBatchMovement",
+    include: "breed,color,classification,entryCause,owner,technician,father,mother,adoptiveMother,receivingMother,batch,paddock",
   });
 
   if (isLoading) {
@@ -104,7 +108,23 @@ export function LivestockDetail({
             setIsRevisionOpen: setIsRevisionModalOpen,
             setIsAbortOpen: setIsAbortModalOpen,
           })}
-          <Button asChild className="bg-primary hover:bg-primary/95 text-primary-foreground">
+          <Button
+            variant="outline"
+            onClick={() => setIsMovePaddockOpen(true)}
+            className="active:scale-95 transition-transform"
+          >
+            <Map className="mr-2 h-4 w-4" />
+            Trasladar Potrero
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsMoveBatchOpen(true)}
+            className="active:scale-95 transition-transform"
+          >
+            <Tag className="mr-2 h-4 w-4" />
+            Asignar Lote
+          </Button>
+          <Button asChild className="bg-primary hover:bg-primary/95 text-primary-foreground active:scale-95 transition-transform">
             <Link href={`/dashboard/livestock/${animal.id}/edit`}>
               <Edit className="mr-2 h-4 w-4" />
               Editar Ficha
@@ -157,8 +177,28 @@ export function LivestockDetail({
                 <p className="font-medium text-sm mt-0.5">{STATE_LABELS[animal.state as State] || animal.state || "—"}</p>
               </div>
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lote</span>
-                <p className="font-medium text-sm mt-0.5">{animal.batch?.name || "Sin Lote"}</p>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lote Administrativo</span>
+                <p className="font-medium text-sm mt-0.5">
+                  {animal.batch ? (
+                    <Link href={`/dashboard/batches/${animal.batch.id}`} className="underline hover:text-primary">
+                      {animal.batch.name} ({animal.batch.code})
+                    </Link>
+                  ) : (
+                    "Sin Lote"
+                  )}
+                </p>
+              </div>
+              <div className="col-span-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ubicación Física (Potrero)</span>
+                <p className="font-medium text-sm mt-0.5">
+                  {animal.paddock ? (
+                    <Badge variant="secondary" className="font-semibold">
+                      {animal.paddock.name} {animal.paddock.code ? `(${animal.paddock.code})` : ""}
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground italic">Sin potrero asignado</span>
+                  )}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -314,6 +354,18 @@ export function LivestockDetail({
         isAbortOpen: isAbortModalOpen,
         setIsAbortOpen: setIsAbortModalOpen,
       })}
+
+      <LivestockMovePaddockDialog
+        isOpen={isMovePaddockOpen}
+        onOpenChange={setIsMovePaddockOpen}
+        animal={animal}
+      />
+
+      <LivestockMoveBatchDialog
+        isOpen={isMoveBatchOpen}
+        onOpenChange={setIsMoveBatchOpen}
+        animal={animal}
+      />
     </div>
   );
 }

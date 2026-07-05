@@ -33,8 +33,14 @@ export function LivestockTable() {
     { id: "entry_cause_id", placeholder: "Todas las causas", options: entryCauses },
   ], [breeds, colors, entryCauses]);
   
+  // Incluimos las relaciones requeridas
+  const combinedParams = React.useMemo(() => ({
+    ...params,
+    include: "breed,color,entryCause,batch,paddock",
+  }), [params]);
+
   // Consulta de ganado al backend enviando los parámetros mapeados por DataTable
-  const { data: paginatedData, isLoading, error } = useLivestockList(params);
+  const { data: paginatedData, isLoading, error } = useLivestockList(combinedParams);
   const { mutate: deleteAnimal, isPending: isDeleting } = useDeleteLivestock();
 
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<number | null>(null);
@@ -153,6 +159,38 @@ export function LivestockTable() {
       },
       meta: {
         label: "Disponibilidad",
+      },
+    },
+    {
+      id: "batch",
+      header: "Lote",
+      cell: ({ row }) => {
+        const batch = row.original.batch;
+        return <div>{batch ? batch.name : "—"}</div>;
+      },
+      meta: {
+        label: "Lote",
+      },
+    },
+    {
+      id: "paddock",
+      header: "Potrero",
+      cell: ({ row }) => {
+        const paddock = row.original.paddock;
+        return (
+          <div>
+            {paddock ? (
+              <Badge variant="secondary" className="font-semibold">
+                {paddock.name}
+              </Badge>
+            ) : (
+              "—"
+            )}
+          </div>
+        );
+      },
+      meta: {
+        label: "Potrero",
       },
     },
     {
