@@ -93,6 +93,8 @@ export interface Livestock {
   mother_id: number | null;
   adoptive_mother_id: number | null;
   receiving_mother_id: number | null;
+  batch_id: number | null;
+  paddock_id: number | null;
   
   // Relaciones
   breed?: { id: number; name: string };
@@ -106,7 +108,8 @@ export interface Livestock {
   mother?: Livestock;
   adoptive_mother?: Livestock;
   receiving_mother?: Livestock;
-  batch?: { id: number; name: string };
+  batch?: { id: number; name: string; code: string };
+  paddock?: { id: number; name: string; code?: string | null };
 }
 
 export const FEMALE_CATEGORIES: AnimalCategory[] = ["cow", "heifer", "female_yearling", "heifer_calf"];
