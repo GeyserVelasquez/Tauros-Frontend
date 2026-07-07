@@ -55,6 +55,10 @@ const data = {
           title: "Potreros",
           url: "/dashboard/paddocks",
         },
+        {
+          title: "Certificados",
+          url: "/dashboard/certificates",
+        },
       ],
     },
     {
@@ -120,11 +124,11 @@ const data = {
       items: [
         {
           title: "Ordeños",
-          url: "#",
+          url: "/dashboard/production/milkings",
         },
         {
           title: "Pesajes",
-          url: "#",
+          url: "/dashboard/production/growths",
         },
       ],
     },
