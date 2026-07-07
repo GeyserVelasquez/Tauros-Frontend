@@ -8,6 +8,7 @@ import {
   HealthStatusChart,
   ReproductiveStatusChart,
 } from "@/features/dashboard";
+import { WeatherCards } from "@/features/weather";
 
 function ChartSkeleton() {
   return (
@@ -32,13 +33,20 @@ export default function Page() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 flex-col gap-4 p-6 pt-0">
+      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight text-foreground font-montserrat">Dashboard</h1>
             <p className="text-sm text-muted-foreground">Cargando resumen de las estadísticas de la finca...</p>
           </div>
         </div>
+        
+        {/* Skeleton para el clima */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="h-32 rounded-xl bg-muted animate-pulse" />
+          <div className="h-32 rounded-xl bg-muted animate-pulse" />
+        </div>
+
         <div className="grid gap-6 md:grid-cols-3">
           <ChartSkeleton />
           <ChartSkeleton />
@@ -70,7 +78,7 @@ export default function Page() {
   const stats = data?.data;
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-6 pt-0">
+    <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground font-montserrat">Dashboard</h1>
@@ -87,6 +95,9 @@ export default function Page() {
           <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
+
+      {/* Cards de Clima arriba de los gráficos */}
+      <WeatherCards />
 
       <div className="grid gap-6 md:grid-cols-3">
         <CategoryDistributionChart data={stats?.category_distribution || []} />
