@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar"
 import {
   Volleyball, Settings2Icon, FrameIcon, PieChartIcon, MapIcon,
-  BriefcaseMedical, VenusAndMars, Beef, Tag, CreditCardIcon, Sparkles, LocateFixed
+  BriefcaseMedical, VenusAndMars, Beef, Tag, CreditCardIcon, Sparkles, LocateFixed, CloudSun
 } from "lucide-react"
 
 // This is sample data.
@@ -129,6 +129,23 @@ const data = {
         {
           title: "Pesajes",
           url: "/dashboard/production/growths",
+        },
+      ],
+    },
+    {
+      title: "Clima",
+      url: "#",
+      icon: (
+        <CloudSun />
+      ),
+      items: [
+        {
+          title: "Temperatura",
+          url: "/dashboard/weather/temperature",
+        },
+        {
+          title: "Humedad y THI",
+          url: "/dashboard/weather/humidity",
         },
       ],
     },
