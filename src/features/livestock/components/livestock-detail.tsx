@@ -3,17 +3,21 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Edit, Calendar, User, FileText, Activity, Map, Tag } from "lucide-react";
+import { ArrowLeft, Edit, Calendar, User, FileText, Activity, Map, Tag, MoreVertical } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { useLivestockById } from "../hooks/useLivestock";
 import { ANIMAL_CATEGORY_LABELS, STATE_LABELS, State, Livestock } from "../types";
 import { LivestockMovePaddockDialog } from "./livestock-move-paddock-dialog";
 import { LivestockMoveBatchDialog } from "./livestock-move-batch-dialog";
+import { LivestockCharts } from "./livestock-charts";
 
 interface LivestockDetailProps {
   id: string | number;
@@ -23,6 +27,8 @@ interface LivestockDetailProps {
       setIsServiceOpen: (open: boolean) => void;
       setIsRevisionOpen: (open: boolean) => void;
       setIsAbortOpen: (open: boolean) => void;
+      setIsGrowthOpen: (open: boolean) => void;
+      setIsMilkingOpen: (open: boolean) => void;
     }
   ) => React.ReactNode;
   renderExtraModals?: (
@@ -34,6 +40,10 @@ interface LivestockDetailProps {
       setIsRevisionOpen: (open: boolean) => void;
       isAbortOpen: boolean;
       setIsAbortOpen: (open: boolean) => void;
+      isGrowthOpen: boolean;
+      setIsGrowthOpen: (open: boolean) => void;
+      isMilkingOpen: boolean;
+      setIsMilkingOpen: (open: boolean) => void;
     }
   ) => React.ReactNode;
 }
@@ -47,6 +57,8 @@ export function LivestockDetail({
   const [isServiceModalOpen, setIsServiceModalOpen] = React.useState(false);
   const [isRevisionModalOpen, setIsRevisionModalOpen] = React.useState(false);
   const [isAbortModalOpen, setIsAbortModalOpen] = React.useState(false);
+  const [isGrowthModalOpen, setIsGrowthModalOpen] = React.useState(false);
+  const [isMilkingModalOpen, setIsMilkingModalOpen] = React.useState(false);
   const [isMovePaddockOpen, setIsMovePaddockOpen] = React.useState(false);
   const [isMoveBatchOpen, setIsMoveBatchOpen] = React.useState(false);
 
@@ -103,247 +115,264 @@ export function LivestockDetail({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {renderExtraActions?.(animal, {
-            setIsServiceOpen: setIsServiceModalOpen,
-            setIsRevisionOpen: setIsRevisionModalOpen,
-            setIsAbortOpen: setIsAbortModalOpen,
-          })}
-          <Button
-            variant="outline"
-            onClick={() => setIsMovePaddockOpen(true)}
-            className="active:scale-95 transition-transform"
-          >
-            <Map className="mr-2 h-4 w-4" />
-            Trasladar Potrero
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setIsMoveBatchOpen(true)}
-            className="active:scale-95 transition-transform"
-          >
-            <Tag className="mr-2 h-4 w-4" />
-            Asignar Lote
-          </Button>
-          <Button asChild className="bg-primary hover:bg-primary/95 text-primary-foreground active:scale-95 transition-transform">
+          <Button asChild size="sm" className="bg-primary hover:bg-primary/95 text-primary-foreground active:scale-95 transition-transform">
             <Link href={`/dashboard/livestock/${animal.id}/edit`}>
               <Edit className="mr-2 h-4 w-4" />
               Editar Ficha
             </Link>
           </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="active:scale-95 transition-transform px-3">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 font-montserrat">
+              {renderExtraActions?.(animal, {
+                setIsServiceOpen: setIsServiceModalOpen,
+                setIsRevisionOpen: setIsRevisionModalOpen,
+                setIsAbortOpen: setIsAbortModalOpen,
+                setIsGrowthOpen: setIsGrowthModalOpen,
+                setIsMilkingOpen: setIsMilkingModalOpen,
+              })}
+              <DropdownMenuItem onClick={() => setIsMovePaddockOpen(true)}>
+                <Map className="mr-2 h-4 w-4" />
+                Trasladar Potrero
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsMoveBatchOpen(true)}>
+                <Tag className="mr-2 h-4 w-4" />
+                Asignar Lote
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       <Separator />
 
-      {/* Grid de Secciones */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* Ficha Básica y Operativa */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Activity className="h-5 w-5 opacity-75" />
-              Datos de Operación
-            </CardTitle>
-            <CardDescription>Estado vital y administrativo del animal</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Categoría</span>
-                <p className="font-medium text-sm mt-0.5">{ANIMAL_CATEGORY_LABELS[animal.animal_category] || animal.animal_category}</p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Código de Chip</span>
-                <p className="font-medium text-sm mt-0.5">{animal.electronic_code || "—"}</p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado Vital</span>
-                <div className="mt-1">
-                  <Badge variant={animal.is_alive ? "default" : "destructive"}>
-                    {animal.is_alive ? "Vivo" : "Muerto"}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Habilitado</span>
-                <div className="mt-1">
-                  <Badge variant={animal.is_enabled ? "outline" : "secondary"}>
-                    {animal.is_enabled ? "Activo" : "Inactivo"}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado Productivo</span>
-                <p className="font-medium text-sm mt-0.5">{STATE_LABELS[animal.state as State] || animal.state || "—"}</p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lote Administrativo</span>
-                <p className="font-medium text-sm mt-0.5">
-                  {animal.batch ? (
-                    <Link href={`/dashboard/batches/${animal.batch.id}`} className="underline hover:text-primary">
-                      {animal.batch.name} ({animal.batch.code})
-                    </Link>
-                  ) : (
-                    "Sin Lote"
-                  )}
-                </p>
-              </div>
-              <div className="col-span-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ubicación Física (Potrero)</span>
-                <p className="font-medium text-sm mt-0.5">
-                  {animal.paddock ? (
-                    <Badge variant="secondary" className="font-semibold">
-                      {animal.paddock.name} {animal.paddock.code ? `(${animal.paddock.code})` : ""}
-                    </Badge>
-                  ) : (
-                    <span className="text-muted-foreground italic">Sin potrero asignado</span>
-                  )}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Origen e Historial de Ingreso */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Calendar className="h-5 w-5 opacity-75" />
-              Origen y Fechas
-            </CardTitle>
-            <CardDescription>Fechas de nacimiento, ingreso e historial de procedencia</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fecha Nacimiento</span>
-                <p className="font-medium text-sm mt-0.5">{animal.birth_date || "No registrada"}</p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fecha Ingreso</span>
-                <p className="font-medium text-sm mt-0.5">{animal.entry_date || "No registrada"}</p>
-              </div>
-              <div className="col-span-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Causa de Ingreso</span>
-                <p className="font-medium text-sm mt-0.5">{animal.entry_cause?.name || "—"}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Morfología y Taxonomía */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <FileText className="h-5 w-5 opacity-75" />
-              Morfología y Atributos
-            </CardTitle>
-            <CardDescription>Características físicas del animal</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Raza</span>
-                <p className="font-medium text-sm mt-0.5">{animal.breed?.name || "No definida"}</p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Color</span>
-                <p className="font-medium text-sm mt-0.5">{animal.color?.name || "No definido"}</p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Clasificación</span>
-                <p className="font-medium text-sm mt-0.5">{animal.classification?.name || "No clasificado"}</p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cantidad de Tetas</span>
-                <p className="font-medium text-sm mt-0.5">{animal.tits}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Asignación y Genealogía */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <User className="h-5 w-5 opacity-75" />
-              Genealogía y Responsables
-            </CardTitle>
-            <CardDescription>Familia del animal y personal a cargo</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Propietario</span>
-                <p className="font-medium text-sm mt-0.5">{animal.owner?.name || "—"}</p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Médico Veterinario</span>
-                <p className="font-medium text-sm mt-0.5">{animal.technician?.name || "—"}</p>
-              </div>
-
-              <div className="col-span-2">
-                <Separator className="my-2" />
-                <h4 className="text-sm font-semibold mb-2">Árbol Genealógico</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
+      <Tabs defaultValue="info" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="info">Información General</TabsTrigger>
+          <TabsTrigger value="charts">Gráficos de Rendimiento</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="info" className="space-y-6 mt-0">
+          {/* Grid de Secciones */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Ficha Básica y Operativa */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Activity className="h-5 w-5 opacity-75" />
+                  Datos de Operación
+                </CardTitle>
+                <CardDescription>Estado vital y administrativo del animal</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-xs text-muted-foreground block">Padre (Toro):</span>
-                    {animal.father ? (
-                      <Link href={`/dashboard/livestock/${animal.father.id}`} className="font-medium underline hover:text-primary">
-                        {animal.father.brand_number} {animal.father.name ? `(${animal.father.name})` : ""}
-                      </Link>
-                    ) : (
-                      <span className="text-muted-foreground">Sin registrar</span>
-                    )}
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Categoría</span>
+                    <p className="font-medium text-sm mt-0.5">{ANIMAL_CATEGORY_LABELS[animal.animal_category] || animal.animal_category}</p>
                   </div>
                   <div>
-                    <span className="text-xs text-muted-foreground block">Madre Biológica:</span>
-                    {animal.mother ? (
-                      <Link href={`/dashboard/livestock/${animal.mother.id}`} className="font-medium underline hover:text-primary">
-                        {animal.mother.brand_number} {animal.mother.name ? `(${animal.mother.name})` : ""}
-                      </Link>
-                    ) : (
-                      <span className="text-muted-foreground">Sin registrar</span>
-                    )}
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Código de Chip</span>
+                    <p className="font-medium text-sm mt-0.5">{animal.electronic_code || "—"}</p>
                   </div>
                   <div>
-                    <span className="text-xs text-muted-foreground block">Madre Adoptiva:</span>
-                    {animal.adoptive_mother ? (
-                      <Link href={`/dashboard/livestock/${animal.adoptive_mother.id}`} className="font-medium underline hover:text-primary">
-                        {animal.adoptive_mother.brand_number}
-                      </Link>
-                    ) : (
-                      <span className="text-muted-foreground">Sin registrar</span>
-                    )}
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado Vital</span>
+                    <div className="mt-1">
+                      <Badge variant={animal.is_alive ? "default" : "destructive"}>
+                        {animal.is_alive ? "Vivo" : "Muerto"}
+                      </Badge>
+                    </div>
                   </div>
                   <div>
-                    <span className="text-xs text-muted-foreground block">Madre Receptora:</span>
-                    {animal.receiving_mother ? (
-                      <Link href={`/dashboard/livestock/${animal.receiving_mother.id}`} className="font-medium underline hover:text-primary">
-                        {animal.receiving_mother.brand_number}
-                      </Link>
-                    ) : (
-                      <span className="text-muted-foreground">Sin registrar</span>
-                    )}
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Habilitado</span>
+                    <div className="mt-1">
+                      <Badge variant={animal.is_enabled ? "outline" : "secondary"}>
+                        {animal.is_enabled ? "Activo" : "Inactivo"}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado Productivo</span>
+                    <p className="font-medium text-sm mt-0.5">{STATE_LABELS[animal.state as State] || animal.state || "—"}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lote Administrativo</span>
+                    <p className="font-medium text-sm mt-0.5">
+                      {animal.batch ? (
+                        <Link href={`/dashboard/batches/${animal.batch.id}`} className="underline hover:text-primary">
+                          {animal.batch.name} ({animal.batch.code})
+                        </Link>
+                      ) : (
+                        "Sin Lote"
+                      )}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ubicación Física (Potrero)</span>
+                    <p className="font-medium text-sm mt-0.5">
+                      {animal.paddock ? (
+                        <Badge variant="secondary" className="font-semibold">
+                          {animal.paddock.name} {animal.paddock.code ? `(${animal.paddock.code})` : ""}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground italic">Sin potrero asignado</span>
+                      )}
+                    </p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
 
-      {/* Observaciones generales */}
-      {animal.general_comment && (
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">Observaciones / Comentarios</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm leading-relaxed text-muted-foreground">{animal.general_comment}</p>
-          </CardContent>
-        </Card>
-      )}
+            {/* Origen e Historial de Ingreso */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Calendar className="h-5 w-5 opacity-75" />
+                  Origen y Fechas
+                </CardTitle>
+                <CardDescription>Fechas de nacimiento, ingreso e historial de procedencia</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fecha Nacimiento</span>
+                    <p className="font-medium text-sm mt-0.5">{animal.birth_date || "No registrada"}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fecha Ingreso</span>
+                    <p className="font-medium text-sm mt-0.5">{animal.entry_date || "No registrada"}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Causa de Ingreso</span>
+                    <p className="font-medium text-sm mt-0.5">{animal.entry_cause?.name || "—"}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Morfología y Taxonomía */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <FileText className="h-5 w-5 opacity-75" />
+                  Morfología y Atributos
+                </CardTitle>
+                <CardDescription>Características físicas del animal</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Raza</span>
+                    <p className="font-medium text-sm mt-0.5">{animal.breed?.name || "No definida"}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Color</span>
+                    <p className="font-medium text-sm mt-0.5">{animal.color?.name || "No definido"}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Clasificación</span>
+                    <p className="font-medium text-sm mt-0.5">{animal.classification?.name || "No clasificado"}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cantidad de Tetas</span>
+                    <p className="font-medium text-sm mt-0.5">{animal.tits}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Asignación y Genealogía */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <User className="h-5 w-5 opacity-75" />
+                  Genealogía y Responsables
+                </CardTitle>
+                <CardDescription>Familia del animal y personal a cargo</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Propietario</span>
+                    <p className="font-medium text-sm mt-0.5">{animal.owner?.name || "—"}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Médico Veterinario</span>
+                    <p className="font-medium text-sm mt-0.5">{animal.technician?.name || "—"}</p>
+                  </div>
+
+                  <div className="col-span-2">
+                    <Separator className="my-2" />
+                    <h4 className="text-sm font-semibold mb-2">Árbol Genealógico</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-xs text-muted-foreground block">Padre (Toro):</span>
+                        {animal.father ? (
+                          <Link href={`/dashboard/livestock/${animal.father.id}`} className="font-medium underline hover:text-primary">
+                            {animal.father.brand_number} {animal.father.name ? `(${animal.father.name})` : ""}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground">Sin registrar</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground block">Madre Biológica:</span>
+                        {animal.mother ? (
+                          <Link href={`/dashboard/livestock/${animal.mother.id}`} className="font-medium underline hover:text-primary">
+                            {animal.mother.brand_number} {animal.mother.name ? `(${animal.mother.name})` : ""}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground">Sin registrar</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground block">Madre Adoptiva:</span>
+                        {animal.adoptive_mother ? (
+                          <Link href={`/dashboard/livestock/${animal.adoptive_mother.id}`} className="font-medium underline hover:text-primary">
+                            {animal.adoptive_mother.brand_number}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground">Sin registrar</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground block">Madre Receptora:</span>
+                        {animal.receiving_mother ? (
+                          <Link href={`/dashboard/livestock/${animal.receiving_mother.id}`} className="font-medium underline hover:text-primary">
+                            {animal.receiving_mother.brand_number}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground">Sin registrar</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Observaciones generales */}
+          {animal.general_comment && (
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Observaciones / Comentarios</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm leading-relaxed text-muted-foreground">{animal.general_comment}</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="charts" className="mt-0">
+          <LivestockCharts id={animal.id} category={animal.animal_category} />
+        </TabsContent>
+      </Tabs>
 
       {/* Modales de Acciones Inyectados por Composición */}
       {renderExtraModals?.(animal, {
@@ -353,6 +382,10 @@ export function LivestockDetail({
         setIsRevisionOpen: setIsRevisionModalOpen,
         isAbortOpen: isAbortModalOpen,
         setIsAbortOpen: setIsAbortModalOpen,
+        isGrowthOpen: isGrowthModalOpen,
+        setIsGrowthOpen: setIsGrowthModalOpen,
+        isMilkingOpen: isMilkingModalOpen,
+        setIsMilkingOpen: setIsMilkingModalOpen,
       })}
 
       <LivestockMovePaddockDialog
