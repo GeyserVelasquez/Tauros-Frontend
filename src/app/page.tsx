@@ -6,7 +6,7 @@ import { Navbar, HeroSection, BentoFeatures } from "@/features/landing";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white font-montserrat select-none">
+    <div className="flex min-h-screen flex-col bg-black text-white font-montserrat">
       {/* 1. Header de Navegación */}
       <Navbar />
 

@@ -23,7 +23,7 @@ export const newbornRequiredSchema = z.object({
     message: "Seleccione una categoría válida",
   }),
   entry_cause_id: z.coerce.number().min(1, "La causa es obligatoria"),
-  state_id: z.coerce.number().min(1, "El estado es obligatorio"),
+  state: z.string().min(1, "El estado es obligatorio"),
   newborn_type_id: z.coerce.number().min(1, "El tipo es obligatorio"),
 });
 
@@ -51,7 +51,7 @@ export const birthFlatSchema = baseBirthSchema.extend({
     message: "Seleccione una categoría válida",
   }),
   entry_cause_id: z.coerce.number().min(1, "La causa es obligatoria"),
-  state_id: z.coerce.number().min(1, "El estado es obligatorio"),
+  state: z.string().min(1, "El estado es obligatorio"),
   newborn_type_id: z.coerce.number().min(1, "El tipo es obligatorio"),
   color_id: z.number().nullable().optional(),
   breed_id: z.number().nullable().optional(),

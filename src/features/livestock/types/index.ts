@@ -28,6 +28,22 @@ export const ANIMAL_CATEGORY_OPTIONS = Object.entries(ANIMAL_CATEGORY_LABELS).ma
     })
 );
 
+export type State = "healthy" | "sick" | "treatment" | "quarantine";
+
+export const STATE_LABELS: Record<State, string> = {
+  healthy: "Sano",
+  sick: "Enfermo",
+  treatment: "En Tratamiento",
+  quarantine: "En Cuarentena",
+};
+
+export const STATE_OPTIONS = Object.entries(STATE_LABELS).map(
+  ([id, name]) => ({
+    id: id as State,
+    name,
+  })
+);
+
 export const livestockFormSchema = z.object({
   brand_number: z.string().min(1, "El número de marca/arete es obligatorio"),
   electronic_code: z.string().nullable().optional(),
@@ -40,7 +56,7 @@ export const livestockFormSchema = z.object({
   is_alive: z.boolean(),
   animal_category: z.string().min(1, "La categoría es obligatoria"),
   entry_cause_id: z.number().min(1, "La causa de ingreso es obligatoria"),
-  state_id: z.number().min(1, "El estado es obligatorio"),
+  state: z.string().min(1, "El estado es obligatorio"),
   breed_id: z.number().nullable().optional(),
   color_id: z.number().nullable().optional(),
   classification_id: z.number().nullable().optional(),
@@ -67,7 +83,7 @@ export interface Livestock {
   is_alive: boolean;
   animal_category: AnimalCategory;
   entry_cause_id: number;
-  state_id: number;
+  state: State;
   breed_id: number | null;
   color_id: number | null;
   classification_id: number | null;
@@ -77,12 +93,14 @@ export interface Livestock {
   mother_id: number | null;
   adoptive_mother_id: number | null;
   receiving_mother_id: number | null;
+  batch_id: number | null;
+  paddock_id: number | null;
   
   // Relaciones
   breed?: { id: number; name: string };
   color?: { id: number; name: string };
   classification?: { id: number; name: string };
-  state?: { id: number; name: string };
+
   entry_cause?: { id: number; name: string };
   owner?: { id: number; name: string };
   technician?: { id: number; name: string };
@@ -90,7 +108,8 @@ export interface Livestock {
   mother?: Livestock;
   adoptive_mother?: Livestock;
   receiving_mother?: Livestock;
-  batch?: { id: number; name: string };
+  batch?: { id: number; name: string; code: string };
+  paddock?: { id: number; name: string; code?: string | null };
 }
 
 export const FEMALE_CATEGORIES: AnimalCategory[] = ["cow", "heifer", "female_yearling", "heifer_calf"];

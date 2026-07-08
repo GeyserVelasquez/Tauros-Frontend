@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar"
 import {
   Volleyball, Settings2Icon, FrameIcon, PieChartIcon, MapIcon,
-  BriefcaseMedical, VenusAndMars, Beef, Tag, CreditCardIcon, Sparkles, LocateFixed
+  BriefcaseMedical, VenusAndMars, Beef, Tag, CreditCardIcon, Sparkles, LocateFixed, CloudSun
 } from "lucide-react"
 
 // This is sample data.
@@ -48,12 +48,20 @@ const data = {
           url: "/dashboard/livestock",
         },
         {
-          title: "Lotes y Rebaños",
-          url: "#",
+          title: "Lotes",
+          url: "/dashboard/batches",
         },
         {
-          title: "Rotación",
-          url: "#",
+          title: "Potreros",
+          url: "/dashboard/paddocks",
+        },
+        {
+          title: "Certificados",
+          url: "/dashboard/certificates",
+        },
+        {
+          title: "Salidas",
+          url: "/dashboard/livestock/outcomes",
         },
       ],
     },
@@ -95,7 +103,11 @@ const data = {
       items: [
         {
           title: "Historias Clínicas",
-          url: "#",
+          url: "/dashboard/health/clinic-histories",
+        },
+        {
+          title: "Calendario / Agenda",
+          url: "/dashboard/health/agenda",
         },
         {
           title: "Diagnósticos",
@@ -116,11 +128,28 @@ const data = {
       items: [
         {
           title: "Ordeños",
-          url: "#",
+          url: "/dashboard/production/milkings",
         },
         {
           title: "Pesajes",
-          url: "#",
+          url: "/dashboard/production/growths",
+        },
+      ],
+    },
+    {
+      title: "Clima",
+      url: "#",
+      icon: (
+        <CloudSun />
+      ),
+      items: [
+        {
+          title: "Temperatura",
+          url: "/dashboard/weather/temperature",
+        },
+        {
+          title: "Humedad",
+          url: "/dashboard/weather/humidity",
         },
       ],
     },

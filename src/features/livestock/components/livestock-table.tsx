@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, SpatieQueryParams } from "@/components/data-table";
-import { ANIMAL_CATEGORY_LABELS, AnimalCategory, Livestock } from "../types";
+import { ANIMAL_CATEGORY_LABELS, AnimalCategory, Livestock, STATE_LABELS, STATE_OPTIONS, State } from "../types";
 import { useLivestockList } from "../hooks/useLivestock";
 import { useDeleteLivestock } from "../hooks/useMutateLivestock";
 import { ArrowUpDown, Edit, Eye, Trash2 } from "lucide-react";
@@ -16,7 +16,7 @@ import { LivestockDeleteDialog } from "./livestock-delete-dialog";
 import { useBreeds } from "@/features/breeds";
 import { useColors } from "@/features/colors";
 import { useEntryCauses } from "@/features/entry-causes";
-import { useStates } from "@/features/states";
+
 
 export function LivestockTable() {
   const [params, setParams] = React.useState<SpatieQueryParams>({});
@@ -24,18 +24,23 @@ export function LivestockTable() {
   // Carga de opciones de catálogos para los selectores de filtros
   const { data: breeds = [] } = useBreeds();
   const { data: colors = [] } = useColors();
-  const { data: states = [] } = useStates();
   const { data: entryCauses = [] } = useEntryCauses();
 
   const filterFields = React.useMemo(() => [
     { id: "breed_id", placeholder: "Todas las razas", options: breeds },
     { id: "color_id", placeholder: "Todos los colores", options: colors },
-    { id: "state_id", placeholder: "Todos los estados", options: states },
+    { id: "state", placeholder: "Todos los estados", options: STATE_OPTIONS },
     { id: "entry_cause_id", placeholder: "Todas las causas", options: entryCauses },
-  ], [breeds, colors, states, entryCauses]);
+  ], [breeds, colors, entryCauses]);
   
+  // Incluimos las relaciones requeridas
+  const combinedParams = React.useMemo(() => ({
+    ...params,
+    include: "breed,color,entryCause,batch,paddock",
+  }), [params]);
+
   // Consulta de ganado al backend enviando los parámetros mapeados por DataTable
-  const { data: paginatedData, isLoading, error } = useLivestockList(params);
+  const { data: paginatedData, isLoading, error } = useLivestockList(combinedParams);
   const { mutate: deleteAnimal, isPending: isDeleting } = useDeleteLivestock();
 
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<number | null>(null);
@@ -121,7 +126,7 @@ export function LivestockTable() {
     {
       id: "state",
       header: "Estado",
-      cell: ({ row }) => <div>{row.original.state?.name || "—"}</div>,
+      cell: ({ row }) => <div>{STATE_LABELS[row.original.state as State] || row.original.state || "—"}</div>,
       meta: {
         label: "Estado de Salud",
       },
@@ -154,6 +159,38 @@ export function LivestockTable() {
       },
       meta: {
         label: "Disponibilidad",
+      },
+    },
+    {
+      id: "batch",
+      header: "Lote",
+      cell: ({ row }) => {
+        const batch = row.original.batch;
+        return <div>{batch ? batch.name : "—"}</div>;
+      },
+      meta: {
+        label: "Lote",
+      },
+    },
+    {
+      id: "paddock",
+      header: "Potrero",
+      cell: ({ row }) => {
+        const paddock = row.original.paddock;
+        return (
+          <div>
+            {paddock ? (
+              <Badge variant="secondary" className="font-semibold">
+                {paddock.name}
+              </Badge>
+            ) : (
+              "—"
+            )}
+          </div>
+        );
+      },
+      meta: {
+        label: "Potrero",
       },
     },
     {
@@ -210,7 +247,7 @@ export function LivestockTable() {
         searchPlaceholder="Buscar por hierro"
         tableId="livestock-table-preferences"
         defaultSort="-created_at"
-        defaultIncludes={["breed", "color", "state", "entryCause"]}
+        defaultIncludes={["breed", "color", "entryCause"]}
         filterFields={filterFields}
         onStateChange={setParams}
       />

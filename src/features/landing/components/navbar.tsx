@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {AppTitle} from "@/components/app-title";
 
 export function Navbar() {
   return (
@@ -10,7 +11,8 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold tracking-wider text-white">
-            Tauros<span className="text-zinc-500 font-medium text-lg"> FMS</span>
+            <AppTitle/>
+            <span className="text-zinc-500 font-medium text-lg"> FMS</span>
           </span>
         </Link>
 
