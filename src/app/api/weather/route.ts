@@ -75,15 +75,20 @@ export async function GET() {
     }));
 
     // 4. Procesamos el pronóstico diario a partir del forecast de 5 días
-    // Agrupamos por fecha para obtener la temperatura máxima y mínima del día
+    // Excluimos la fecha de hoy para mostrar estrictamente los 5 días siguientes completos
+    const todayStr = new Date(currentData.dt * 1000).toISOString().split("T")[0];
     const dailyMap: Record<string, any> = {};
 
     (forecastData.list || []).forEach((item: any) => {
       const dateStr = new Date(item.dt * 1000).toISOString().split("T")[0];
+      
+      // Omitimos los datos que correspondan a la fecha de hoy
+      if (dateStr === todayStr) return;
+
       if (!dailyMap[dateStr]) {
         dailyMap[dateStr] = {
           dt: item.dt,
-          sunrise: currentData.sys.sunrise, // Simulamos el sol de hoy ya que el forecast 2.5 no lo trae
+          sunrise: currentData.sys.sunrise,
           sunset: currentData.sys.sunset,
           temp: {
             day: item.main.temp,
@@ -104,7 +109,7 @@ export async function GET() {
       }
     });
 
-    const dailyProcessed = Object.values(dailyMap).slice(0, 5); // Nos quedamos con los 5 días disponibles
+    const dailyProcessed = Object.values(dailyMap).slice(0, 5); // Retornamos los 5 días de mañana en adelante
 
     const responsePayload = {
       current: currentProcessed,

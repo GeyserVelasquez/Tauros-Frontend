@@ -50,8 +50,8 @@ export function HumidityView() {
 
   const forecastData = useMemo(() => {
     if (!data?.daily) return [];
-    // Ajustado a exactamente 5 días para evitar huecos en el grid
-    return data.daily.slice(1, 6).map((d) => {
+    // Dado que el backend ya excluye el día de hoy, tomamos los primeros 5 elementos del arreglo
+    return data.daily.slice(0, 5).map((d) => {
       const date = new Date(d.dt * 1000);
       return {
         day: date.toLocaleDateString("es-ES", { weekday: "short" }),
@@ -127,12 +127,13 @@ export function HumidityView() {
         <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors font-montserrat">
           <ChevronLeft className="h-4 w-4" /> Volver al Dashboard
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight font-montserrat">Análisis de Humedad y THI</h1>
+        <h1 className="text-2xl font-bold tracking-tight font-montserrat">Análisis de Humedad</h1>
         <p className="text-sm text-muted-foreground font-montserrat">Estudio de humedad relativa y confort calórico del ganado</p>
       </div>
 
-      {/* Cards principales con paddings corregidos */}
+      {/* Cards principales corregidas al estado original (Humedad, THI con Badge, Punto de rocío y Nubosidad) */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Card 1: Humedad Actual */}
         <Card className="bg-background border-border shadow-sm p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase font-montserrat">Humedad Actual</span>
@@ -142,6 +143,7 @@ export function HumidityView() {
           <p className="text-[10px] text-muted-foreground mt-1 font-montserrat">Humedad relativa del aire</p>
         </Card>
 
+        {/* Card 2: Estrés Térmico (THI) */}
         <Card className="bg-background border-border shadow-sm p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase font-montserrat">Estrés Térmico (THI)</span>
@@ -197,6 +199,7 @@ export function HumidityView() {
           <p className="text-[10px] text-muted-foreground mt-1 font-montserrat">Índice Temperatura-Humedad</p>
         </Card>
 
+        {/* Card 3: Punto de Rocío */}
         <Card className="bg-background border-border shadow-sm p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase font-montserrat">Punto de Rocío</span>
@@ -206,6 +209,7 @@ export function HumidityView() {
           <p className="text-[10px] text-muted-foreground mt-1 font-montserrat">Condensación de vapor de agua</p>
         </Card>
 
+        {/* Card 4: Nubosidad */}
         <Card className="bg-background border-border shadow-sm p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase font-montserrat">Nubosidad</span>
@@ -247,7 +251,7 @@ export function HumidityView() {
         </CardContent>
       </Card>
 
-      {/* Grid de Pronóstico 5 días + Métricas Avanzadas (Mismo alto que temperatura) */}
+      {/* Grid de Pronóstico 5 días + Dos cards separadas a la derecha para emparejar con Temperatura */}
       <div className="grid gap-6 md:grid-cols-3">
         {/* Pronóstico Humedad a 5 Días (Grid de 5 columnas, estilo unificado) */}
         <Card className="md:col-span-2 bg-background border-border shadow-sm">
@@ -270,30 +274,40 @@ export function HumidityView() {
           </CardContent>
         </Card>
 
-        {/* Card de Métricas Avanzadas de Humedad (Equilibra la vista derecha) */}
-        <Card className="bg-background border-border shadow-sm p-4">
-          <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase font-montserrat mb-3">Métricas del Período</p>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm font-montserrat">
-              <span className="text-muted-foreground">Humedad Máxima</span>
-              <span className="font-mono font-bold">{humMax}%</span>
+        {/* Sección de la derecha: Dividida en dos cards separadas apiladas verticalmente */}
+        <div className="space-y-6">
+          {/* Card 1: Límites del período */}
+          <Card className="bg-background border-border shadow-sm p-4">
+            <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase font-montserrat mb-3">Límites del Período</p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm font-montserrat">
+                <span className="text-muted-foreground">Humedad Máxima</span>
+                <span className="font-mono font-bold">{humMax}%</span>
+              </div>
+              <div className="flex items-center justify-between text-sm font-montserrat">
+                <span className="text-muted-foreground">Humedad Mínima</span>
+                <span className="font-mono font-bold">{humMin}%</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between text-sm font-montserrat">
-              <span className="text-muted-foreground">Humedad Mínima</span>
-              <span className="font-mono font-bold">{humMin}%</span>
+          </Card>
+
+          {/* Card 2: Diagnóstico y transpiración */}
+          <Card className="bg-background border-border shadow-sm p-4">
+            <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase font-montserrat mb-3">Confort e Hidratación</p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm font-montserrat">
+                <span className="text-muted-foreground">Condensación</span>
+                <span className="font-mono font-bold">{Math.round(current.dew_point)}°C</span>
+              </div>
+              <div className="flex items-center justify-between text-sm font-montserrat">
+                <span className="text-muted-foreground">Secado de Potrero</span>
+                <span className="font-mono font-bold text-xs text-primary bg-primary/5 px-2 py-0.5 rounded">
+                  {current.clouds >= 70 ? "Lento" : current.humidity >= 80 ? "Moderado" : "Rápido"}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center justify-between text-sm font-montserrat">
-              <span className="text-muted-foreground">Condensación Promedio</span>
-              <span className="font-mono font-bold">{Math.round(current.dew_point)}°C</span>
-            </div>
-            <div className="flex items-center justify-between text-sm font-montserrat">
-              <span className="text-muted-foreground">Secado de Potrero</span>
-              <span className="font-mono font-bold text-xs text-primary bg-primary/5 px-2 py-0.5 rounded">
-                {current.clouds >= 70 ? "Lento (Nublado)" : current.humidity >= 80 ? "Moderado" : "Rápido"}
-              </span>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   );

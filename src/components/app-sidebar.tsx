@@ -144,7 +144,7 @@ const data = {
           url: "/dashboard/weather/temperature",
         },
         {
-          title: "Humedad y THI",
+          title: "Humedad",
           url: "/dashboard/weather/humidity",
         },
       ],

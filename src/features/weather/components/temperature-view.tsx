@@ -26,8 +26,8 @@ export function TemperatureView() {
 
   const forecastData = useMemo(() => {
     if (!data?.daily) return [];
-    // Filtramos para obtener exactamente 5 días de pronóstico para el grid de 5 columnas
-    return data.daily.slice(1, 6).map((d) => {
+    // Dado que el backend ya excluye el día de hoy, tomamos los primeros 5 elementos del arreglo
+    return data.daily.slice(0, 5).map((d) => {
       const date = new Date(d.dt * 1000);
       return {
         day: date.toLocaleDateString("es-ES", { weekday: "short" }),
