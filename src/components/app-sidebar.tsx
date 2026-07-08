@@ -59,6 +59,10 @@ const data = {
           title: "Certificados",
           url: "/dashboard/certificates",
         },
+        {
+          title: "Salidas",
+          url: "/dashboard/livestock/outcomes",
+        },
       ],
     },
     {
