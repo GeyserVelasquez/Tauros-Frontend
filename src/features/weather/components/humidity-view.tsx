@@ -240,9 +240,18 @@ export function HumidityView() {
                 <XAxis dataKey="time" className="text-[10px] font-mono" tickLine={false} />
                 <YAxis className="text-[10px] font-mono" tickLine={false} unit="%" />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: "hsl(var(--background))", borderRadius: "8px", borderColor: "hsl(var(--border))" }}
-                  labelClassName="text-xs font-semibold font-montserrat"
-                  className="font-mono text-xs"
+                  contentStyle={{ 
+                    backgroundColor: "hsl(var(--background))", 
+                    borderRadius: "8px", 
+                    borderColor: "hsl(var(--border))",
+                    fontSize: "12px",
+                    fontFamily: "var(--font-mono, monospace)"
+                  }}
+                  labelStyle={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    fontFamily: "var(--font-montserrat, sans-serif)"
+                  }}
                 />
                 <Area type="monotone" dataKey="humidity" stroke="var(--color-chart-2, #3b82f6)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorHumidity)" />
               </AreaChart>
