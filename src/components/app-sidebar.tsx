@@ -7,6 +7,7 @@ import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import { useAuthStore } from "@/store/auth-store"
+import { usePermission } from "@/hooks/usePermission"
 import {
   Sidebar,
   SidebarContent,
@@ -19,13 +20,8 @@ import {
   BriefcaseMedical, VenusAndMars, Beef, Tag, CreditCardIcon, Sparkles, LocateFixed, CloudSun
 } from "lucide-react"
 
-// This is sample data.
+// Menu data with corresponding permissions from Spatie mapping
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   teams: [
     {
       name: "La Pelotera Ranch",
@@ -46,22 +42,27 @@ const data = {
         {
           title: "Ganado",
           url: "/dashboard/livestock",
+          permission: "manage-livestock",
         },
         {
           title: "Lotes",
           url: "/dashboard/batches",
+          permission: "manage-batches-paddocks",
         },
         {
           title: "Potreros",
           url: "/dashboard/paddocks",
+          permission: "manage-batches-paddocks",
         },
         {
           title: "Certificados",
           url: "/dashboard/certificates",
+          permission: "manage-livestock",
         },
         {
           title: "Salidas",
           url: "/dashboard/livestock/outcomes",
+          permission: "register-outcomes",
         },
       ],
     },
@@ -75,22 +76,27 @@ const data = {
         {
           title: "Servicios",
           url: "/dashboard/reproduction/services",
+          permission: "register-services",
         },
         {
           title: "Revisiones",
           url: "/dashboard/reproduction/revisions",
+          permission: "perform-revisions",
         },
         {
           title: "Partos",
           url: "/dashboard/reproduction/births",
+          permission: "register-births",
         },
         {
           title: "Abortos",
           url: "/dashboard/reproduction/aborts",
+          permission: "register-aborts",
         },
         {
           title: "Extracciones",
           url: "/dashboard/reproduction/extractions",
+          permission: "manage-genetic-material",
         },
       ],
     },
@@ -104,18 +110,22 @@ const data = {
         {
           title: "Historias Clínicas",
           url: "/dashboard/health/clinic-histories",
+          permission: "manage-clinic-histories",
         },
         {
           title: "Calendario / Agenda",
           url: "/dashboard/health/agenda",
+          permission: "manage-clinic-histories",
         },
         {
           title: "Diagnósticos",
           url: "/dashboard/health/diagnostics",
+          permission: "register-diagnostics",
         },
         {
           title: "Tratamientos",
           url: "/dashboard/health/treatments",
+          permission: "apply-treatments",
         },
       ],
     },
@@ -129,10 +139,12 @@ const data = {
         {
           title: "Ordeños",
           url: "/dashboard/production/milkings",
+          permission: "register-milkings",
         },
         {
           title: "Pesajes",
           url: "/dashboard/production/growths",
+          permission: "register-growths",
         },
       ],
     },
@@ -164,14 +176,17 @@ const data = {
         {
           title: "General",
           url: "#",
+          permission: "configure-settings",
         },
         {
           title: "Personal",
           url: "#",
+          permission: "manage-users",
         },
         {
           title: "Terminología",
           url: "#",
+          permission: "configure-settings",
         },
       ],
     },
@@ -197,6 +212,22 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const storeUser = useAuthStore((state) => state.user)
   const user = storeUser || { name: "Usuario", email: "" }
+  const { hasPermission } = usePermission()
+
+  // Dynamically filter menu items based on user permissions
+  const filteredNavMain = data.navMain.map((group) => {
+    const filteredItems = group.items?.filter((item) => {
+      if ("permission" in item && typeof item.permission === "string") {
+        return hasPermission(item.permission);
+      }
+      return true;
+    });
+
+    return {
+      ...group,
+      items: filteredItems,
+    };
+  }).filter((group) => group.items && group.items.length > 0);
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -204,7 +235,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNavMain} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
