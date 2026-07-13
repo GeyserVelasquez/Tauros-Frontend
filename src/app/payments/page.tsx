@@ -1,14 +1,7 @@
 "use client"
 
 import { AppSidebar } from "@/components/app-sidebar"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs"
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
@@ -31,19 +24,7 @@ export default function PaymentsPage() {
                 orientation="vertical"
                 className="mr-2 data-vertical:h-4 data-vertical:self-auto"
               />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem className="hidden md:block">
-                    <BreadcrumbLink href="/dashboard">
-                      Dashboard
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator className="hidden md:block" />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>Pagos</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
+              <DynamicBreadcrumbs />
             </div>
           </header>
           <div className="flex flex-1 flex-col gap-4 p-6 pt-0">
