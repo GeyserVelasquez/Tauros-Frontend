@@ -66,13 +66,13 @@ export function LoginForm({
           <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8">
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">Welcome back</h1>
+                <h1 className="text-2xl font-bold">Bienvenido de nuevo</h1>
                 <p className="text-balance text-muted-foreground">
-                  Login to your Acme Inc account
+                  Ingresa a tu cuenta
                 </p>
               </div>
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="email">Correo electrónico</FieldLabel>
                 <Input
                   id="email"
                   type="email"
@@ -85,12 +85,12 @@ export function LoginForm({
               </Field>
               <Field>
                 <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <FieldLabel htmlFor="password">Contraseña</FieldLabel>
                   <a
                     href="#"
                     className="ml-auto text-sm underline-offset-2 hover:underline"
                   >
-                    Forgot your password?
+                    ¿Olvidaste tu contraseña?
                   </a>
                 </div>
                 <Input
@@ -104,11 +104,11 @@ export function LoginForm({
               </Field>
               <Field>
                 <Button type="submit" disabled={!isValid || isPending}>
-                  {isPending ? "Logging in..." : "Login"}
+                  {isPending ? "Iniciando sesión..." : "Iniciar Sesión"}
                 </Button>
               </Field>
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-                Or continue with
+                O continuar con
               </FieldSeparator>
               <Field className="grid grid-cols-3 gap-4">
                 <Button variant="outline" type="button">
@@ -118,7 +118,7 @@ export function LoginForm({
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="sr-only">Login with Apple</span>
+                  <span className="sr-only">Iniciar sesión con Apple</span>
                 </Button>
                 <Button variant="outline" type="button">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -127,7 +127,7 @@ export function LoginForm({
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="sr-only">Login with Google</span>
+                  <span className="sr-only">Iniciar sesión con Google</span>
                 </Button>
                 <Button variant="outline" type="button">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -136,11 +136,11 @@ export function LoginForm({
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="sr-only">Login with Meta</span>
+                  <span className="sr-only">Iniciar sesión con Meta</span>
                 </Button>
               </Field>
               <FieldDescription className="text-center">
-                Don&apos;t have an account? <a href="#">Sign up</a>
+                ¿No tienes una cuenta? <a href="#">Regístrate</a>
               </FieldDescription>
             </FieldGroup>
           </form>
@@ -154,8 +154,8 @@ export function LoginForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+        Al hacer clic en continuar, aceptas nuestros <a href="#">Términos de Servicio</a>{" "}
+        y la <a href="#">Política de Privacidad</a>.
       </FieldDescription>
     </div>
   );

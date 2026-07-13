@@ -65,7 +65,7 @@ export function TemperatureView() {
   const today = daily[0];
 
   const formatWindDir = (deg: number) => {
-    const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+    const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"];
     const idx = Math.round(((deg %= 360) < 0 ? deg + 360 : deg) / 22.5) % 16;
     return directions[idx];
   };
