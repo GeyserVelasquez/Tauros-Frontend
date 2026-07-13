@@ -31,7 +31,7 @@ export default function RootLayout({children,}: Readonly<{ children: React.React
             className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", montserrat.variable)}
             suppressHydrationWarning
         >
-            <body className="min-h-full flex flex-col">
+            <body className="min-h-full flex flex-col" suppressHydrationWarning>
             <ThemeProvider
                 attribute="class"
                 defaultTheme="system"
