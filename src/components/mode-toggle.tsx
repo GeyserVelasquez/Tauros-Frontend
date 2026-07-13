@@ -22,18 +22,18 @@ export function ModeToggle() {
                         <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
                         <Moon className="absolute top-0 left-0 h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
                     </div>
-                    <span>Toggle theme</span>
+                    <span>Cambiar tema</span>
                 </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setTheme("light")}>
-                    Light
+                    Claro
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    Dark
+                    Oscuro
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme("system")}>
-                    System
+                    Sistema
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

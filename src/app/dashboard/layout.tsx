@@ -2,13 +2,7 @@ import { AuthGuard } from "@/features/auth/components/auth-guard";
 import {SidebarInset, SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
 import {AppSidebar} from "@/components/app-sidebar";
 import {Separator} from "@/components/ui/separator";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList, BreadcrumbPage,
-  BreadcrumbSeparator
-} from "@/components/ui/breadcrumb";
+import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs";
 
 export default function DashboardLayout({
   children,
@@ -27,19 +21,7 @@ export default function DashboardLayout({
                     orientation="vertical"
                     className="mr-2 data-vertical:h-4 data-vertical:self-auto"
                 />
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="#">
-                        Build Your Application
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
+                <DynamicBreadcrumbs />
               </div>
             </header>
             {children}
